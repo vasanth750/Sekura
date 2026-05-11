@@ -1,20 +1,25 @@
-export default function Footer () {
+export default function Footer() {
     return (
-        <>
-        <footer>
-            <p>
-                ©Sekura inc  All rights reserved
-            </p>
 
-            <p>
-                Privacy Policy  Terms and Conditions
-            </p>
-            
-            <p>
-                End to End Encrypted | V 0.01
+        <footer className="bg-black text-white py-4 w-full">
 
-            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 text-center gap-4 px-4">
+
+                <p>
+                    © 2026 Sekura Inc. All rights reserved
+                </p>
+
+                <p>
+                    Privacy Policy | Terms & Conditions
+                </p>
+
+                <p>
+                    End-to-End Encrypted | V 0.01
+                </p>
+
+            </div>
+
         </footer>
-        </>
+
     );
 }
