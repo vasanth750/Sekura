@@ -11,39 +11,57 @@ import Footer from './components/footer/Footer.jsx';
 import Header from './components/header/Header.jsx';
 import Secrets from './Pages/Secrets.jsx';
 
+import Privacy from './components/footer/Privacy.jsx';
+import Terms from './components/footer/Terms.jsx';
+import Contact from './components/footer/Contact.jsx';
+
+
 function Layout() {
+
   const location = useLocation();
 
-  const hideHeaderFooterRouts = ['/login', '/signup'];
+  const hideHeaderFooterRoutes = ['/login', '/signup'];
 
   return (
-    <>
-      {!hideHeaderFooterRouts.includes(location.pathname) && <Header />}
 
-      <Routes>
+    <div className='min-h-screen flex flex-col'>
 
-        <Route path='/' element={<Navigate to="/login" />} />
+      {
+        !hideHeaderFooterRoutes.includes(location.pathname)
+        &&
+        <Header />
+      }
+      <main className='flex-grow'>
+        <Routes>
 
-        <Route path='/login' element={<Login />} />
+          <Route path='/' element={<Navigate to="/login" />} />
 
-        <Route path='/signup' element={<Signup />} />
+          <Route path='/login' element={<Login />} />
 
-        <Route path='/secrets' element={<Secrets />} />
+          <Route path='/signup' element={<Signup />} />
 
+          <Route path='/secrets' element={<Secrets />} />
 
-      </Routes>
+          <Route path='/privacy-policy' element={<Privacy />} />
 
-      {!hideHeaderFooterRouts.includes(location.pathname) && <Footer />}
-    </>
+          <Route path='/terms-condition' element={<Terms />} />
+
+          <Route path='/contact-us' element={<Contact />} />
+
+        </Routes>
+      </main>
+      {
+        !hideHeaderFooterRoutes.includes(location.pathname)
+        &&
+        <Footer />
+      }
+
+    </div >
+
   );
 }
 
 export default function App() {
 
-  return (
-    <>
-      <Layout />
-    </>
-  );
-
+  return <Layout />;
 }

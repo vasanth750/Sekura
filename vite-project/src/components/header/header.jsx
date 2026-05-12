@@ -1,7 +1,7 @@
 import profile from '../../assets/acc.jpeg';
 export default function Header() {
     return (
-        <header className="flex items-center w-full border-b bg-white px-6 py-3 sticky top-0 z-50">
+        <header className="flex items-center w-full border px-6 py-3 sticky top-0 z-50 bg-white">
             
             {/* Logo: Fixed size, won't shrink */}
             <div className="flex-none">
