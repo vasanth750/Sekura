@@ -14,8 +14,7 @@ import Secrets from './Pages/Secrets.jsx';
 import Privacy from './components/footer/Privacy.jsx';
 import Terms from './components/footer/Terms.jsx';
 import Contact from './components/footer/Contact.jsx';
-
-
+import Dashboard from './Pages/dashBoard.jsx';
 function Layout() {
 
   const location = useLocation();
@@ -41,6 +40,8 @@ function Layout() {
           <Route path='/signup' element={<Signup />} />
 
           <Route path='/secrets' element={<Secrets />} />
+         
+        <Route path='/dashBoard' element={<Dashboard />} />
 
           <Route path='/privacy-policy' element={<Privacy />} />
 
