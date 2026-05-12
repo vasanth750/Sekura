@@ -432,7 +432,7 @@ function Signup() {
                             I Have Account?{" "}
 
                             <Link
-                                to="/"
+                                to="/login"
                                 className='text-cyan-400 no-underline font-semibold'
                             >
                                 Login to Account

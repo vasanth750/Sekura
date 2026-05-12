@@ -186,7 +186,7 @@ function Login() {
                         </span>
 
                         <Link
-                            to='/Signup'
+                            to='/signup'
                             className='text-cyan-400 no-underline font-semibold'
                         >
                             Create Account
