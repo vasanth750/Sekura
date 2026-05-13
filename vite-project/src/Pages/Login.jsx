@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom';
 import img from '../assets/SekuraLogo.png';
 import bg_img from '../assets/image.png';
 
 function Login() {
 
+    const navigate = useNavigate();
     // States
     const [email, setEmail] = useState('');
     const [emailError, setEmailError] = useState('');
@@ -48,32 +49,37 @@ function Login() {
         backdropFilter: 'blur(10px)'
     };
 
-    const handleLogin = async () => {
-        try {
-            const response = await axios.post(
+   const handleLogin = async () => {
+    try {
 
-                'http://localhost:5000/login',
-
-                {
-                    Email: email,
-                    Password: password
-                }
-
-            );
-
-            console.log(response.data.user);
-
-            alert(response.data.message);
-        }
-        catch (error) {
-            if (error.response) {
-                alert(error.response.data.message);
+        const response = await axios.post(
+            'http://localhost:5000/login',
+            {
+                Email: email,
+                Password: password
             }
-            else {
-                alert("Server error");
-            }
+        );
+
+        console.log(response.data.user);
+
+        alert(response.data.message);
+
+        // Redirect to dashboard
+        navigate('/dashboard');
+
+    }
+
+    catch (error) {
+
+        if (error.response) {
+            alert(error.response.data.message);
         }
-    };
+
+        else {
+            alert("Server error");
+        }
+    }
+};
 
     return (
         <div

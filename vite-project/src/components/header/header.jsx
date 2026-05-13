@@ -28,23 +28,52 @@ export default function Header() {
 
 
 
-                    {/* Mobile Hamburger */}
+                    {/* Hamburger Button */}
                     <button
                         className="md:hidden"
                         onClick={() => setOpen(!open)}
                     >
-                        <Bars3Icon className="w-7 h-7 text-black z-80" ></Bars3Icon>
+                        <Bars3Icon className="w-7 h-7 text-black" />
                     </button>
+
+                    {/* Sidebar Overlay */}
                     {open && (
-                        <div className="absolute right-0 mt-3 w-48 bg-white shadow-lg rounded-lg border p-4 flex flex-col gap-3 z-50">
-                            <a href="#" className="hover:text-blue-600">Dashboard</a>
-                            <a href="#" className="hover:text-blue-600">Secrets</a>
-                            <a href="#" className="hover:text-blue-600">Sharelinks</a>
-                            <a href="#" className="hover:text-blue-600">Auditlogs</a>
-                            <a href="#" className="hover:text-blue-600">Team</a>
-                            <a href="#" className="hover:text-blue-600">Settings</a>
-                        </div>
+                        <div
+                            className="fixed inset-0 bg-black/40 z-40"
+                            onClick={() => setOpen(false)}
+                        ></div>
                     )}
+
+                    {/* Sidebar */}
+                    <div
+                        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"
+                            }`}
+                    >
+
+                        {/* Sidebar Header */}
+                        <div className="flex justify-between items-center p-5 border-b">
+                            <h2 className="text-2xl font-bold text-blue-600">
+                                Sekura
+                            </h2>
+
+                            <button
+                                onClick={() => setOpen(false)}
+                                className="text-2xl font-bold"
+                            >
+                                
+                            </button>
+                        </div>
+
+                        {/* Sidebar Links */}
+                        <nav className="flex flex-col p-5 gap-5 text-gray-700 font-semibold">
+                            <a href="#" className="hover:text-blue-600 cursor-pointer">Dashboard</a>
+                            <a href="#" className="hover:text-blue-600 cursor-pointer">Secrets</a>
+                            <a href="#" className="hover:text-blue-600 cursor-pointer">Sharelinks</a>
+                            <a href="#" className="hover:text-blue-600 cursor-pointer">Auditlogs</a>
+                            <a href="#" className="hover:text-blue-600 cursor-pointer">Team</a>
+                            <a href="#" className="hover:text-blue-600 cursor-pointer">Settings</a>
+                        </nav>
+                    </div>
                     {/* Profile */}
                     <button className="w-11 h-11 rounded-full overflow-hidden border border-gray-300 hover:ring-2 hover:ring-blue-200 transition">
                         <img
