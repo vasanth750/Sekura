@@ -1,19 +1,35 @@
 import { useState } from "react";
+import AddSecret from "../popup-page/addSecret";
+import CreateLink from "../popup-page/createLinks";
 
 export default function Secrets() {
 
     const [secrets, setSecrets] = useState([
         {
-        secretName:'vasant',
-        roleAccess:'Production',
-        status:'Active',
-        lastUpdated:'00.00'
-    }
+            secretName: 'vasant',
+            accessRole: 'Production',
+            status: 'Active',
+            lastUpdated: '00.00'
+        }
     ]);
+
+    const [showSecretPopup, setShowSecretPopup] = useState(false);
+    const [showLinkPopup, setShowLinkPopup] = useState(false);
 
     return (
 
-        <div className="w-full bg-gray-50 p-4 md:p-8">
+        <div className="w-full bg-gray-50 p-4 md:p-8 lg:px-20">
+
+            {
+                showSecretPopup && (
+                    <AddSecret closePopup={() => setShowSecretPopup(false)} />
+                )
+            }
+            {
+                showLinkPopup && (
+                    <CreateLink closePopup={() => setShowLinkPopup(false)} />
+                )
+            }
 
             {/* Top Section */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -28,34 +44,43 @@ export default function Secrets() {
                     <p className="max-w-2xl mt-3 text-gray-600 text-sm md:text-base">
                         Securely manage, monitor, and rotate your application's
                         environment variables, API keys, and certificates
-                        across all clusters.
+                        across all your clusters.
                     </p>
 
                 </div>
-                <div className="w-full items-center">
 
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold">
+                {/* Buttons */}
+                <div className="flex gap-3 flex-wrap ">
+
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold w-[170px]"
+                        onClick={() => setShowSecretPopup(true)}
+                    >
                         + Add New Secret
+                    </button>
+
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold"
+                    onClick={() => setShowLinkPopup(true)}>
+                        + Create Access Link
                     </button>
 
                 </div>
 
             </div>
 
-            {/* Search & Filter Section */}
-            <div className="mt-8 bg-white border border-gray-200 rounded-2xl shadow-sm p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+            {/* Search Section */}
+            <div className="mt-8 bg-white border border-gray-300 rounded-2xl p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
 
-                {/* Search */}
                 <input
                     type="text"
-                    placeholder="⌕ Search by secret name, value, or tags..."
-                    className="w-full lg:w-[400px] h-[45px] px-4 rounded-xl border border-gray-300 outline-none"
+                    placeholder="⌕ Search secrets by name, tags, or role..."
+                    className="w-full lg:w-[400px] h-[45px] px-4 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
             </div>
 
             {/* Table Section */}
-            <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+            <div className="mt-8 bg-white rounded-2xl border border-gray-300 overflow-hidden">
 
                 {/* Table Header */}
                 <div className="p-6 border-b border-gray-200">
@@ -65,20 +90,20 @@ export default function Secrets() {
                     </h2>
 
                     <p className="text-gray-500 text-sm mt-1">
-                        Showing active secrets in your workspace.
+                        Displaying active secrets in your workspace.
                     </p>
 
                 </div>
 
                 {/* Table */}
-                <div className="min-w-[600px]">
+                <div className="overflow-x-auto">
 
                     {/* Header Row */}
-                    <div className="grid grid-cols-5 bg-gray-100 text-gray-600 text-sm font-semibold border-b">
+                    <div className="grid grid-cols-5 bg-blue-600 text-white text-sm font-semibold">
 
                         <div className="p-4">Secret Name</div>
 
-                        <div className="p-4">Role Access</div>
+                        <div className="p-4">Access Role</div>
 
                         <div className="p-4">Status</div>
 
@@ -92,14 +117,17 @@ export default function Secrets() {
                     {
                         secrets.map((secret, index) => (
 
-                            <div key={index} className="grid grid-cols-5 items-center border-b hover:bg-gray-50 transition-all text-sm">
+                            <div
+                                key={index}
+                                className="grid grid-cols-5 items-center border-b border-gray-200 hover:bg-gray-50 transition-all text-sm last:border-b-0"
+                            >
 
                                 <div className="p-4">
                                     {secret.secretName}
                                 </div>
 
                                 <div className="p-4">
-                                    {secret.roleAccess}
+                                    {secret.accessRole}
                                 </div>
 
                                 <div className="p-4">
@@ -112,11 +140,11 @@ export default function Secrets() {
 
                                 <div className="p-4 flex justify-center gap-3">
 
-                                    <button className="text-blue-600 hover:text-blue-800">
+                                    <button className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
                                         Edit
                                     </button>
 
-                                    <button className="text-red-500 hover:text-red-700">
+                                    <button className="text-red-500 hover:text-red-700 font-medium cursor-pointer">
                                         Delete
                                     </button>
 
