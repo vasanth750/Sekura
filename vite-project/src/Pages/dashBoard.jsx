@@ -1,5 +1,6 @@
+import { useNavigate } from "react-router-dom";
 export default function Dashboard() {
-
+const navigate = useNavigate();
   const stats = [
     { title: "Total Secrets", value: "0" },
     { title: "Team Members", value: "0" },
@@ -9,11 +10,11 @@ export default function Dashboard() {
 
   return (
 
-    <div className=" bg-gray-200 p-4 rounded-xl min-h-screen">
+    <div className=" bg-gray-50 p-4 rounded-xl min-h-screen">
 
       {/* ================= TOP SECTION ================= */}
 
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:m-8 lg:mx-20">
 
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">
@@ -27,12 +28,11 @@ export default function Dashboard() {
 
         <div className="flex flex-row gap-3 w-full sm:w-auto">
 
-          <button className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white rounded-lg">
-            Create Sharelinks
-          </button>
-
-          <button className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white rounded-lg">
-            New Secret
+          <button
+            onClick={() => navigate("/secrets")}
+            className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white rounded-lg"
+          >
+            +New Secret
           </button>
 
         </div>
@@ -41,7 +41,7 @@ export default function Dashboard() {
 
       {/* ================= STATS ================= */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8  md:m-8 lg:mx-20">
 
         {stats.map((item, index) => (
 
@@ -66,7 +66,7 @@ export default function Dashboard() {
 
       {/* ================= RECENT SECRETS ================= */}
 
-      <div className="mt-8 bg-white rounded-xl border overflow-hidden">
+      <div className="mt-8 bg-white rounded-xl border overflow-hidden md:m-8 lg:mx-20">
 
         {/* Header */}
 
