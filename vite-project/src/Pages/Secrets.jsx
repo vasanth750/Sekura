@@ -2,7 +2,6 @@ import { useState } from "react";
 
 export default function Secrets() {
 
-<<<<<<< Updated upstream
     const [secrets, setSecrets] = useState([
         {
         secretName:'vasant',
@@ -15,13 +14,6 @@ export default function Secrets() {
     return (
 
         <div className="w-full bg-gray-50 p-4 md:p-8">
-=======
-    const [secrets, setSecrets] = useState([]);
-
-    return (
-
-        <div className="w-full min-h-screen bg-gray-50 p-4 md:p-8">
->>>>>>> Stashed changes
 
             {/* Top Section */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -100,11 +92,7 @@ export default function Secrets() {
                     {
                         secrets.map((secret, index) => (
 
-<<<<<<< Updated upstream
                             <div key={index} className="grid grid-cols-5 items-center border-b hover:bg-gray-50 transition-all text-sm">
-=======
-                            <div key={index} className="grid grid-cols-7 items-center border-b hover:bg-gray-50 transition-all text-sm">
->>>>>>> Stashed changes
 
                                 <div className="p-4">
                                     {secret.secretName}
