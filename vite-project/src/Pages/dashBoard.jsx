@@ -1,93 +1,144 @@
-export default function dashBoard() {
+export default function Dashboard() {
 
   const stats = [
-    {
-      title: "Total Secrets",
-      value: "0"
-    },
-    {
-      title: "Team Members",
-      value: "0"
-    },
-    {
-      title: "Active Links",
-      value: "0"
-    },
-    {
-      title: "Expiring Soon",
-      value: "0"
-    },
+    { title: "Total Secrets", value: "0" },
+    { title: "Team Members", value: "0" },
+    { title: "Active Links", value: "0" },
+    { title: "Expiring Soon", value: "0" },
   ];
 
   return (
 
-    <div className='w-full'>
+    <div className=" bg-gray-200 p-4 rounded-xl min-h-screen">
 
-      <div className="flex justify-between items-center">
+      {/* ================= TOP SECTION ================= */}
+
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+
         <div>
-          <h1 className="text-3xl font-bold">Welcome!</h1>
-          <h3 className="text-gray-500 text-xl">
+          <h1 className="text-3xl md:text-4xl font-bold">
+            Welcome!
+          </h1>
+
+          <h3 className="text-gray-500 text-base md:text-xl">
             make your stuff secure.
           </h3>
         </div>
-        <div className="flex gap-3">
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg">
+
+        <div className="flex flex-row gap-3 w-full sm:w-auto">
+
+          <button className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white rounded-lg">
             Create Sharelinks
           </button>
-          <button className="px-2 py-2 bg-blue-600 text-white rounded-lg">
+
+          <button className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white rounded-lg">
             New Secret
           </button>
+
         </div>
+
       </div>
-      <div className="grid grid-cols-4 gap-4 mt-8 w-full">
+
+      {/* ================= STATS ================= */}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 w-full">
+
         {stats.map((item, index) => (
+
           <div
             key={index}
-            className="border rounded-2xl p-5 shadow-sm"
+            className="bg-white border rounded-2xl p-5 shadow-sm"
           >
-            <h3 className="text-black-950 font-bold">
+
+            <h3 className="font-bold text-gray-800">
               {item.title}
             </h3>
+
             <h1 className="text-3xl font-bold mt-2">
               {item.value}
             </h1>
+
           </div>
+
         ))}
 
       </div>
-      <div ><h1 className="text-2xl font-bold mt-5">Recent Secrets</h1>
-      <h3 className="text-gray-500 text-m mb-6">Recently accessed or updated credentials across your environments.</h3></div>
-      <div className="w-full grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 border-b pb-3 mb-4 text-sm text-gray-500 font-medium">
-        <p className="font-bold text-black">Secret Name</p>
-        <p>Environment</p>
-        <p>Last Accessed</p>
-        <p>Actions</p>
-      </div>
-      <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center border-b py-4">
-        <p className="font-semibold text-gray-800">API_KEY</p>
-        <p>Production</p>
-        <p>2 hours ago</p>
 
-        <button className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-          View
-        </button>
-      </div>
+      {/* ================= RECENT SECRETS ================= */}
 
-      {/* Row 2 */}
-      <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center border-b py-4">
-        <p className="font-semibold text-gray-800">DB_PASSWORD</p>
-        <p>Development</p>
-        <p>Yesterday</p>
+      <div className="mt-8 bg-white rounded-xl border overflow-hidden">
 
-        <button className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-          View
-        </button>
+        {/* Header */}
+
+        <div className="p-5 border-b">
+
+          <h1 className="text-2xl font-bold text-gray-900">
+            Recent Secrets
+          </h1>
+
+          <h3 className="text-gray-500 text-sm md:text-base">
+            Recently accessed or updated credentials across your environments.
+          </h3>
+
+        </div>
+
+        {/* Table */}
+
+        <div className="w-full overflow-x-auto">
+
+          <div className="min-w-[650px]">
+
+            {/* Table Heading */}
+
+            <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 bg-blue-600 px-5 py-3 text-sm text-white font-bold">
+
+              <p>Secret Name</p>
+              <p>Environment</p>
+              <p>Last Accessed</p>
+              <p>Actions</p>
+
+            </div>
+
+            {/* Row 1 */}
+
+            <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center px-5 py-4 border-b">
+
+              <p className="font-semibold text-gray-800">
+                API_KEY
+              </p>
+
+              <p>Production</p>
+
+              <p>2 hours ago</p>
+
+              <p>-</p>
+
+            </div>
+
+            {/* Row 2 */}
+
+            <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center px-5 py-4">
+
+              <p className="font-semibold text-gray-800">
+                DB_PASSWORD
+              </p>
+
+              <p>Development</p>
+
+              <p>Yesterday</p>
+
+              <p>-</p>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
     </div>
 
   );
-
-
 
 }

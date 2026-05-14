@@ -165,7 +165,29 @@ export default function Header() {
           {/* Navigation */}
 
           <nav className="flex items-center gap-6 xl:gap-10">
+<<<<<<< Updated upstream
             <NavLinks />
+=======
+            {links.map(([name, path]) => (
+              <Link
+                key={path}
+                to={path}
+                onClick={() => {
+                  setProfileOpen(false);
+
+                  if (mobile) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                className={`font-bold text-sm lg:text-base transition-colors duration-200 ${location.pathname === path
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-blue-600 active:text-blue-600"
+                  }`}
+              >
+                {name}
+              </Link>
+            ))}
+>>>> Stashed changes
           </nav>
 
           {/* Profile */}
@@ -191,9 +213,14 @@ export default function Header() {
 
       <div
         className={`fixed top-0 left-0 h-full w-64 sm:w-72 max-w-[80vw] bg-white shadow-lg z-50 p-5
+<<<<<<< Updated upstream
         transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+=======
+        transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+>>>>>>> Stashed changes
       >
 
         {/* Sidebar Header */}
