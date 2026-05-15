@@ -10,7 +10,7 @@ const navigate = useNavigate();
 
   return (
 
-    <div className=" bg-gray-50 rounded-xl">
+    <div className=" bg-gray-50 p-4 rounded-xl">
 
       {/* ================= TOP SECTION ================= */}
 

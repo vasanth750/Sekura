@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
-import jws from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 import connectDB from './config/db.js';
 import User from './user.js';
 
@@ -124,7 +124,7 @@ app.post("/login", async (req, res) => {
             await User.findOne({
 
                 email: Email
- 
+
             });
 
         // User not found
@@ -138,7 +138,7 @@ app.post("/login", async (req, res) => {
             });
 
         }
-            const validPassword = await argon2.verify(userValidation.password,Password)
+        const validPassword = await argon2.verify(userValidation.password, Password)
         // Password validation
         if (!validPassword) {
 
@@ -151,22 +151,26 @@ app.post("/login", async (req, res) => {
 
         }
 
-        const token = jws.sign (
+        const token = jwt.sign(
             {
-                id:userValidation._id,
-                email:userValidation.email
+                id: userValidation._id,
+                email: userValidation.email
             },
             process.env.JWT_SECRET,
             {
-                expires:"1d"
+                expiresIn: "1d"
             }
-        )
+        );
 
         // Login success
         res.status(200).json({
-
             message: "Login Successful",
-            token: token
+            token: token,
+            user: {
+                id: userValidation._id,
+                name: userValidation.name,
+                email: userValidation.email
+            }
         });
 
     }
