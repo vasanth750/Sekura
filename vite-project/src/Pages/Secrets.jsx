@@ -18,13 +18,16 @@ export default function Secrets() {
 
     return (
 
-        <div className="w-full bg-gray-50 p-4 md:p-8 lg:px-20">
+        <div className="w-full p-4 md:p-8 lg:px-20">
 
+            {/* Secret Popup */}
             {
                 showSecretPopup && (
                     <AddSecret closePopup={() => setShowSecretPopup(false)} />
                 )
             }
+
+            {/* Create Link Popup */}
             {
                 showLinkPopup && (
                     <CreateLink closePopup={() => setShowLinkPopup(false)} />
@@ -50,17 +53,19 @@ export default function Secrets() {
                 </div>
 
                 {/* Buttons */}
-                <div className="flex gap-3 flex-wrap ">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
 
                     <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold w-[170px]"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold sm:w-[170px]"
                         onClick={() => setShowSecretPopup(true)}
                     >
                         + Add New Secret
                     </button>
 
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold"
-                    onClick={() => setShowLinkPopup(true)}>
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl shadow-md transition-all cursor-pointer text-sm font-semibold"
+                        onClick={() => setShowLinkPopup(true)}
+                    >
                         + Create Access Link
                     </button>
 
@@ -99,17 +104,27 @@ export default function Secrets() {
                 <div className="overflow-x-auto">
 
                     {/* Header Row */}
-                    <div className="grid grid-cols-5 bg-blue-600 text-white text-sm font-semibold">
+                    <div className="grid grid-cols-5 bg-blue-600 text-white text-sm font-semibold min-w-[700px]">
 
-                        <div className="p-4">Secret Name</div>
+                        <div className="p-4">
+                            Secret Name
+                        </div>
 
-                        <div className="p-4">Access Role</div>
+                        <div className="p-4">
+                            Access Role
+                        </div>
 
-                        <div className="p-4">Status</div>
+                        <div className="p-4">
+                            Status
+                        </div>
 
-                        <div className="p-4">Last Updated</div>
+                        <div className="p-4">
+                            Last Updated
+                        </div>
 
-                        <div className="p-4 text-center">Actions</div>
+                        <div className="p-4 text-center">
+                            Actions
+                        </div>
 
                     </div>
 
@@ -119,7 +134,7 @@ export default function Secrets() {
 
                             <div
                                 key={index}
-                                className="grid grid-cols-5 items-center border-b border-gray-200 hover:bg-gray-50 transition-all text-sm last:border-b-0"
+                                className="grid grid-cols-5 items-center border-b border-gray-200 hover:bg-gray-50 transition-all text-sm last:border-b-0 min-w-[700px]"
                             >
 
                                 <div className="p-4">

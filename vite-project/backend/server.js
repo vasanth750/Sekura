@@ -1,7 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
+import argon2 from 'argon2';
+import jws from 'jsonwebtoken'
 import connectDB from './config/db.js';
 import User from './user.js';
 
@@ -64,14 +65,15 @@ app.post("/newUser", async (req, res) => {
 
         }
 
+        const hassedPassword = await argon2.hash(Password);
+
         // Create new user
         const user = new User({
 
             name: Name,
             email: Email,
             mobile: Mobile,
-            password: Password
-
+            password: hassedPassword
         });
 
         // Save user
@@ -92,7 +94,7 @@ app.post("/newUser", async (req, res) => {
 
         res.status(500).json({
 
-            message: "Server Error"
+            message: "Server Er"
 
         });
 
@@ -136,11 +138,9 @@ app.post("/login", async (req, res) => {
             });
 
         }
-
+            const validPassword = await argon2.verify(userValidation.password,Password)
         // Password validation
-        if (
-            userValidation.password !== Password
-        ) {
+        if (!validPassword) {
 
             return res.status(401).json({
 
@@ -151,11 +151,22 @@ app.post("/login", async (req, res) => {
 
         }
 
+        const token = jws.sign (
+            {
+                id:userValidation._id,
+                email:userValidation.email
+            },
+            process.env.JWT_SECRET,
+            {
+                expires:"1d"
+            }
+        )
+
         // Login success
         res.status(200).json({
 
-            message: "Login Successful"
-
+            message: "Login Successful",
+            token: token
         });
 
     }

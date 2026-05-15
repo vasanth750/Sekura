@@ -10,11 +10,11 @@ const navigate = useNavigate();
 
   return (
 
-    <div className=" bg-gray-50 p-4 rounded-xl min-h-screen">
+    <div className=" bg-gray-50 rounded-xl">
 
       {/* ================= TOP SECTION ================= */}
 
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:m-8 lg:mx-20">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:my-5 lg:mx-20">
 
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">
@@ -32,7 +32,7 @@ const navigate = useNavigate();
             onClick={() => navigate("/secrets")}
             className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 text-white rounded-lg"
           >
-            +New Secret
+            New Secret
           </button>
 
         </div>

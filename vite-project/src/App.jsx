@@ -25,14 +25,14 @@ function Layout() {
 
   return (
 
-    <div className='min-h-screen flex flex-col'>
+    <div className='min-h-screen bg-gray-50 flex flex-col'>
 
       {
         !hideHeaderFooterRoutes.includes(location.pathname)
         &&
         <Header />
       }
-      <main className='flex-grow'>
+      <main className='flex-1'>
         <Routes>
 
           <Route path='/' element={<Navigate to="/login" />} />

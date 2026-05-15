@@ -31,13 +31,13 @@ export default function CreateRequestPage() {
 
     return (
 
-        <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-100 flex justify-center items-center p-4">
+        <div className="w-full bg-gray-50 flex justify-center items-center p-4 md:p-8">
 
             {/* Main Card */}
-            <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div className="w-full max-w-3xl bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
 
                 {/* Top Header */}
-                <div className="bg-blue-600 text-white p-8">
+                <div className="bg-blue-600 text-white p-6 md:p-8">
 
                     <div className="flex items-center gap-4">
 
@@ -49,11 +49,11 @@ export default function CreateRequestPage() {
 
                         <div>
 
-                            <h1 className="text-3xl font-bold">
+                            <h1 className="text-2xl md:text-3xl font-bold">
                                 Create Request Link
                             </h1>
 
-                            <p className="text-blue-100 mt-1">
+                            <p className="text-blue-100 mt-1 text-sm md:text-base">
                                 Generate secure request links for collecting secrets safely.
                             </p>
 
@@ -100,7 +100,7 @@ export default function CreateRequestPage() {
                         {
                             generatedLink && (
 
-                                <div className="mt-8 bg-slate-50 border border-slate-200 rounded-2xl p-5 animate-in fade-in">
+                                <div className="mt-8 bg-slate-50 border border-slate-200 rounded-2xl p-5">
 
                                     <div className="flex items-center gap-2 mb-4">
 
@@ -116,7 +116,7 @@ export default function CreateRequestPage() {
                                     </div>
 
                                     {/* Link Box */}
-                                    <div className="flex flex-col md:flex-row gap-3">
+                                    <div className="flex flex-col sm:flex-row gap-3">
 
                                         <input
                                             type="text"
@@ -127,7 +127,7 @@ export default function CreateRequestPage() {
 
                                         <button
                                             onClick={handleCopy}
-                                            className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+                                            className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer sm:min-w-[140px]"
                                         >
                                             <Copy size={18} />
 
