@@ -13,15 +13,19 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
 
-    mobile: {
+    password: {
         type: String,
         required: true
     },
 
-    password: {
-        type: String,
-        required: true
-    }
+    isVerified:{
+        type:Boolean,
+        default:false
+    },
+
+    verificationCode : String,
+
+    verificationCodeexpires : Date
 
 });
 

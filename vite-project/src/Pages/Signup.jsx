@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import img from '../assets/SekuraLogo.png';
 import bg_img from '../assets/image.png';
@@ -9,17 +9,26 @@ import bg_img from '../assets/image.png';
 function Signup() {
 
     // =========================
+    // NAVIGATE
+    // =========================
+
+    const navigate = useNavigate();
+
+    // =========================
     // STATES
     // =========================
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
-    const [mobile, setMobile] = useState("");
     const [password, setPassword] = useState("");
     const [reEnter, setReEnter] = useState("");
 
+    const [emailValid, setEmailValid] = useState(false);
+    const [otp, setOtp] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
+
     const [emailError, setEmailError] = useState("");
-    const [mobileErr, setMobileErr] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [rePasswordError, setRePasswordError] = useState("");
     const [nameError, setNameError] = useState("");
@@ -31,12 +40,12 @@ function Signup() {
     const isFormValid =
         name &&
         email &&
-        mobile &&
+        emailValid &&
+        otp &&
         password &&
         reEnter &&
         !nameError &&
         !emailError &&
-        !mobileErr &&
         !passwordError &&
         !rePasswordError;
 
@@ -62,6 +71,7 @@ function Signup() {
         if (email === '') {
 
             setEmailError('');
+            setEmailValid(false);
 
         }
 
@@ -71,43 +81,18 @@ function Signup() {
                 'Enter the valid email address'
             );
 
+            setEmailValid(false);
+
         }
 
         else {
 
             setEmailError('');
+            setEmailValid(true);
 
         }
+        };
 
-    };
-
-    // =========================
-    // MOBILE VALIDATION
-    // =========================
-
-    const mobileError = (mobile) => {
-
-        if (mobile === '') {
-
-            setMobileErr('');
-
-        }
-
-        else if (mobile.length < 10) {
-
-            setMobileErr(
-                'Enter 10 digit mobile number'
-            );
-
-        }
-
-        else {
-
-            setMobileErr('');
-
-        }
-
-    };
 
     // =========================
     // PASSWORD VALIDATION
@@ -196,36 +181,120 @@ function Signup() {
 
     };
 
-    const handleSignup = async () => {
+    // =========================
+    // SEND OTP
+    // =========================
+
+    const sendOTP = async () => {
+
         try {
-            const response = await axios.post(
-                'http://localhost:5000/newUser',
 
-                {
-                    Name: name,
-                    Email: email,
-                    Mobile: mobile,
-                    Password: password
-                }
+            const response =
+                await axios.post(
 
-            );
+                    "http://localhost:5000/send-otp",
 
-            console.log(response.data.user);
+                    {
+                        Email: email
+                    }
+
+                );
 
             alert(response.data.message);
+
+            setOtpSent(true);
 
         }
 
         catch (error) {
+
             if (error.response) {
-                alert(error.response.data.message);
+
+                alert(
+                    error.response.data.message
+                );
+
             }
+
             else {
+
                 alert("Server error");
+
             }
+
         }
+
     };
 
+    // =========================
+    // SIGNUP
+    // =========================
+
+    const handleSignup = async () => {
+
+        try {
+
+            // VERIFY OTP
+            await axios.post(
+
+                "http://localhost:5000/verify-otp",
+
+                {
+                    Email: email,
+                    OTP: otp
+                }
+
+            );
+
+            setOtpVerified(true);
+
+            // CREATE ACCOUNT
+            const response =
+                await axios.post(
+
+                    'http://localhost:5000/newUser',
+
+                    {
+                        Name: name,
+                        Email: email, 
+                        Password: password
+                    }
+
+                );
+
+            // STORE JWT TOKEN
+            localStorage.setItem(
+
+                "token",
+                response.data.token
+
+            );
+
+            alert(response.data.message);
+
+            navigate("/dashboard");
+
+        }
+
+        catch (error) {
+
+            if (error.response) {
+
+                alert(
+                    error.response.data.message
+                );
+
+            }
+
+            else {
+
+                alert("Server Error");
+
+            }
+
+        }
+
+    };
 
     // =========================
     // JSX
@@ -305,7 +374,8 @@ function Signup() {
                         </div>
 
                         {/* EMAIL */}
-                        <div className='h-[60px] w-[450px] ml-24'>
+                        <div className='w-[450px] ml-24'>
+
                             <input
                                 type='email'
                                 className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
@@ -327,36 +397,56 @@ function Signup() {
                                 </p>
 
                             )}
+
+                            {
+                                emailValid &&
+                                !otpSent && (
+
+                                    <button
+                                        type='button'
+                                        onClick={sendOTP}
+                                        className='bg-cyan-500 text-white px-4 py-2 rounded mt-2'
+                                    >
+
+                                        Send OTP
+
+                                    </button>
+
+                                )
+                            }
+
+                            {
+                                otpSent &&
+                                !otpVerified && (
+
+                                    <div className='mt-2'>
+
+                                        <input
+
+                                            type='text'
+
+                                            placeholder='Enter OTP'
+
+                                            value={otp}
+
+                                            onChange={(e) =>
+                                                setOtp(e.target.value)
+                                            }
+
+                                            className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
+
+                                            style={inputStyle}
+
+                                        />
+
+                                    </div>
+
+                                )
+                            }
+
                         </div>
-                        {/* MOBILE */}
-                        <div className='h-[60px] w-[450px] ml-24'>
-                            <input
-                                type='text'
-                                className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
-                                placeholder='91+ 0000000000'
-                                value={mobile}
-                                maxLength={10}
-                                onChange={(e) => {
 
-                                    const numberOnly =
-                                        e.target.value.replace(/\D/g, '');
 
-                                    setMobile(numberOnly);
-
-                                    mobileError(numberOnly);
-
-                                }}
-                                style={inputStyle}
-                            />
-
-                            {mobileErr && (
-
-                                <p className='text-red-500 m-0'>
-                                    {mobileErr}
-                                </p>
-
-                            )}
-                        </div>
                         {/* PASSWORD */}
                         <div className='h-[60px] w-[450px] ml-24'>
                             <input
@@ -381,6 +471,7 @@ function Signup() {
 
                             )}
                         </div>
+
                         {/* RE-ENTER PASSWORD */}
                         <div className='h-[60px] w-[450px] ml-24'>
                             <input
@@ -409,16 +500,17 @@ function Signup() {
 
                             )}
                         </div>
+
                         {/* SIGNUP BUTTON */}
 
                         <button
                             type='button'
                             className={`
-                                    rounded w-[300px] py-2 font-semibold text-white transition-colors
-                                    ${isFormValid
+                                rounded w-[300px] py-2 font-semibold text-white transition-colors
+                                ${isFormValid
                                     ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                                     : 'bg-gray-500 cursor-not-allowed'}
-                                `}
+                            `}
                             disabled={!isFormValid}
                             onClick={handleSignup}
                         >
@@ -445,8 +537,10 @@ function Signup() {
                 </div>
 
             </div>
+
         </>
 
     );
 }
+
 export default Signup;
