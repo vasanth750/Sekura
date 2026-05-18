@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
-
+import auth from "./middleware/auth.js";
 import connectDB from './config/db.js';
 import transporter from './config/mail.js'
 
@@ -430,6 +430,13 @@ app.post("/login", async (req, res) => {
 // ======================================
 
 const PORT = process.env.PORT || 5000;
+
+app.get("/secrets", auth, (req, res) => {
+    res.status(200).json({
+        message: "Token received successfully",
+        user: req.user,
+    });
+});
 
 app.listen(PORT, () => {
 
