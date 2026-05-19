@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+
 import auth from "./middleware/auth.js";
+
 import connectDB from './config/db.js';
 import transporter from './config/mail.js';
 
@@ -18,6 +20,12 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
+
+// ======================================
+// OTP STORE
+// ======================================
+
+const otpStore = {};
 
 // ======================================
 // HOME ROUTE
@@ -37,26 +45,7 @@ app.post("/send-otp", async (req, res) => {
 
     try {
 
-        const {
-            Name,
-            Email,
-            Password
-        } = req.body;
-
-        // =========================
-        // NAME VALIDATION
-        // =========================
-
-        if (!Name || Name.length < 3) {
-
-            return res.status(400).json({
-
-                message:
-                    "Name must contain minimum 3 characters"
-
-            });
-
-        }
+        const { Email } = req.body;
 
         // =========================
         // EMAIL VALIDATION
@@ -77,24 +66,6 @@ app.post("/send-otp", async (req, res) => {
         }
 
         // =========================
-        // PASSWORD VALIDATION
-        // =========================
-
-        const passwordPattern =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-        if (!passwordPattern.test(Password)) {
-
-            return res.status(400).json({
-
-                message:
-                    "Password must contain uppercase, lowercase, number and special character"
-
-            });
-
-        }
-
-        // =========================
         // CHECK EXISTING USER
         // =========================
 
@@ -105,10 +76,7 @@ app.post("/send-otp", async (req, res) => {
 
             });
 
-        if (
-            existingUser &&
-            existingUser.isVerified
-        ) {
+        if (existingUser) {
 
             return res.status(409).json({
 
@@ -131,42 +99,19 @@ app.post("/send-otp", async (req, res) => {
             ).toString();
 
         // =========================
-        // SAVE TEMP USER
+        // STORE OTP
         // =========================
 
-        if (!existingUser) {
+        otpStore[Email] = {
 
-            const hashedPassword =
-                await argon2.hash(Password);
+            otp: verificationCode,
 
-            await User.create({
+            expires:
+                Date.now() + 5 * 60 * 1000,
 
-                name: Name,
+            verified: false
 
-                email: Email,
-
-                password: hashedPassword,
-
-                verificationCode,
-
-                verificationCodeExpires:
-                    Date.now() + 5 * 60 * 1000
-
-            });
-
-        }
-
-        else {
-
-            existingUser.verificationCode =
-                verificationCode;
-
-            existingUser.verificationCodeExpires =
-                Date.now() + 5 * 60 * 1000;
-
-            await existingUser.save();
-
-        }
+        };
 
         // =========================
         // SEND EMAIL
@@ -245,22 +190,15 @@ app.post("/verify-otp", async (req, res) => {
         } = req.body;
 
         // =========================
-        // FIND USER
+        // OTP EXIST?
         // =========================
 
-        const user =
-            await User.findOne({
+        if (!otpStore[Email]) {
 
-                email: Email
-
-            });
-
-        if (!user) {
-
-            return res.status(404).json({
+            return res.status(400).json({
 
                 message:
-                    "User not found"
+                    "OTP not found"
 
             });
 
@@ -271,7 +209,7 @@ app.post("/verify-otp", async (req, res) => {
         // =========================
 
         if (
-            user.verificationCodeExpires
+            otpStore[Email].expires
             < Date.now()
         ) {
 
@@ -289,7 +227,7 @@ app.post("/verify-otp", async (req, res) => {
         // =========================
 
         if (
-            user.verificationCode !== OTP
+            otpStore[Email].otp !== OTP
         ) {
 
             return res.status(400).json({
@@ -302,16 +240,151 @@ app.post("/verify-otp", async (req, res) => {
         }
 
         // =========================
-        // VERIFY USER
+        // VERIFIED
         // =========================
 
-        user.isVerified = true;
+        otpStore[Email].verified = true;
 
-        user.verificationCode = null;
+        res.status(200).json({
 
-        user.verificationCodeExpires = null;
+            message:
+                "OTP Verified"
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+
+            message:
+                "Server Error"
+
+        });
+
+    }
+
+});
+
+// ======================================
+// SIGNUP API
+// ======================================
+
+app.post("/newUser", async (req, res) => {
+
+    try {
+
+        const {
+            Name,
+            Email,
+            Password,
+            RePassword
+        } = req.body;
+
+        // =========================
+        // EMAIL VERIFIED?
+        // =========================
+
+        if (
+            !otpStore[Email] ||
+            !otpStore[Email].verified
+        ) {
+
+            return res.status(401).json({
+
+                message:
+                    "Email not verified"
+
+            });
+
+        }
+
+        // =========================
+        // NAME VALIDATION
+        // =========================
+
+        if (
+            !Name ||
+            Name.length < 3
+        ) {
+
+            return res.status(400).json({
+
+                message:
+                    "Name must contain minimum 3 characters"
+
+            });
+
+        }
+
+        // =========================
+        // PASSWORD MATCH VALIDATION
+        // =========================
+
+        if (Password !== RePassword) {
+
+            return res.status(400).json({
+
+                message:
+                    "Passwords do not match"
+
+            });
+
+        }
+
+        // =========================
+        // PASSWORD VALIDATION
+        // =========================
+
+        const passwordPattern =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+        if (
+            !passwordPattern.test(Password)
+        ) {
+
+            return res.status(400).json({
+
+                message:
+                    "Password must contain uppercase, lowercase, number and special character"
+
+            });
+
+        }
+
+        // =========================
+        // HASH PASSWORD
+        // =========================
+
+        const hashedPassword =
+            await argon2.hash(Password);
+
+        // =========================
+        // CREATE USER
+        // =========================
+
+        const user = new User({
+
+            name: Name,
+
+            email: Email,
+
+            password: hashedPassword,
+
+            isVerified: true
+
+        });
 
         await user.save();
+
+        // =========================
+        // REMOVE OTP
+        // =========================
+
+        delete otpStore[Email];
 
         // =========================
         // GENERATE JWT
@@ -332,10 +405,10 @@ app.post("/verify-otp", async (req, res) => {
 
         );
 
-        res.status(200).json({
+        res.status(201).json({
 
             message:
-                "OTP Verified",
+                "Signup Successful",
 
             token,
 
@@ -498,17 +571,27 @@ app.post("/login", async (req, res) => {
 });
 
 // ======================================
+// PROTECTED ROUTE
+// ======================================
+
+app.get("/secrets", auth, (req, res) => {
+
+    res.status(200).json({
+
+        message:
+            "Token received successfully",
+
+        user: req.user,
+
+    });
+
+});
+
+// ======================================
 // SERVER
 // ======================================
 
 const PORT = process.env.PORT || 5000;
-
-app.get("/secrets", auth, (req, res) => {
-    res.status(200).json({
-        message: "Token received successfully",
-        user: req.user,
-    });
-});
 
 app.listen(PORT, () => {
 

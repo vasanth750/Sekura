@@ -1,7 +1,11 @@
 import { useState } from 'react';
+
 import axios from 'axios';
 
-import { Link, useNavigate } from 'react-router-dom';
+import {
+    Link,
+    useNavigate
+} from 'react-router-dom';
 
 import img from '../assets/SekuraLogo.png';
 import bg_img from '../assets/image.png';
@@ -14,48 +18,32 @@ function Signup() {
     // STATES
     // =========================
 
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [reEnter, setReEnter] = useState("");
+    const [name, setName] =
+        useState("");
 
-    const [emailValid, setEmailValid] = useState(false);
+    const [email, setEmail] =
+        useState("");
 
-    const [otp, setOtp] = useState("");
+    const [password, setPassword] =
+        useState("");
 
-    const [otpSent, setOtpSent] = useState(false);
+    const [reEnter, setReEnter] =
+        useState("");
 
-    const [otpVerified, setOtpVerified] = useState(false);
+    const [otp, setOtp] =
+        useState("");
 
-    const [emailError, setEmailError] = useState("");
-    const [passwordError, setPasswordError] = useState("");
-    const [rePasswordError, setRePasswordError] = useState("");
-    const [nameError, setNameError] = useState("");
+    const [otpSent, setOtpSent] =
+        useState(false);
 
-    // =========================
-    // FORM VALIDATION
-    // =========================
+    const [otpVerified, setOtpVerified] =
+        useState(false);
 
-    const isFormValid =
-        name &&
-        email &&
-        password &&
-        reEnter &&
-        otpVerified &&
-        !nameError &&
-        !emailError &&
-        !passwordError &&
-        !rePasswordError;
+    const [loading, setLoading] =
+        useState(false);
 
-    // =========================
-    // STYLES
-    // =========================
-
-    const inputStyle = {
-        width: '80%',
-        background: 'rgba(213, 229, 231, 0.96)',
-        backdropFilter: 'blur(10px)'
-    };
+    const [emailError, setEmailError] =
+        useState("");
 
     // =========================
     // EMAIL VALIDATION
@@ -66,123 +54,19 @@ function Signup() {
         const emailPattern =
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (email === '') {
-
-            setEmailError('');
-            setEmailValid(false);
-
-        }
-
-        else if (!emailPattern.test(email)) {
+        if (!emailPattern.test(email)) {
 
             setEmailError(
-                'Enter valid email address'
+                "Enter valid email address"
             );
 
-            setEmailValid(false);
+            return false;
 
         }
 
-        else {
+        setEmailError("");
 
-            setEmailError('');
-            setEmailValid(true);
-
-        }
-
-    };
-
-    // =========================
-    // PASSWORD VALIDATION
-    // =========================
-
-    const validatePassword = (password) => {
-
-        const passwordPattern =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-        if (password === '') {
-
-            setPasswordError('');
-
-        }
-
-        else if (
-            !passwordPattern.test(password)
-        ) {
-
-            setPasswordError(
-                'Password must contain uppercase, lowercase, number and special character'
-            );
-
-        }
-
-        else {
-
-            setPasswordError('');
-
-        }
-
-    };
-
-    // =========================
-    // RE PASSWORD VALIDATION
-    // =========================
-
-    const validateRePassword = (
-        rePassword,
-        password
-    ) => {
-
-        if (rePassword === '') {
-
-            setRePasswordError('');
-
-        }
-
-        else if (
-            rePassword !== password
-        ) {
-
-            setRePasswordError(
-                "Password doesn't match"
-            );
-
-        }
-
-        else {
-
-            setRePasswordError('');
-
-        }
-
-    };
-
-    // =========================
-    // NAME VALIDATION
-    // =========================
-
-    const validateName = (name) => {
-
-        if (name === '') {
-
-            setNameError('');
-
-        }
-
-        else if (name.length < 3) {
-
-            setNameError(
-                'Name must contain minimum 3 characters'
-            );
-
-        }
-
-        else {
-
-            setNameError('');
-
-        }
+        return true;
 
     };
 
@@ -192,7 +76,13 @@ function Signup() {
 
     const sendOTP = async () => {
 
-        setOtpSent(true);
+        if (!validateEmail(email)) {
+
+            return;
+
+        }
+
+        setLoading(true);
 
         try {
 
@@ -205,6 +95,8 @@ function Signup() {
                 }
 
             );
+
+            setOtpSent(true);
 
         }
 
@@ -226,6 +118,12 @@ function Signup() {
 
         }
 
+        finally {
+
+            setLoading(false);
+
+        }
+
     };
 
     // =========================
@@ -233,6 +131,8 @@ function Signup() {
     // =========================
 
     const verifyOTP = async () => {
+
+        setLoading(true);
 
         try {
 
@@ -269,6 +169,12 @@ function Signup() {
 
         }
 
+        finally {
+
+            setLoading(false);
+
+        }
+
     };
 
     // =========================
@@ -276,6 +182,8 @@ function Signup() {
     // =========================
 
     const handleSignup = async () => {
+
+        setLoading(true);
 
         try {
 
@@ -287,7 +195,8 @@ function Signup() {
                     {
                         Name: name,
                         Email: email,
-                        Password: password
+                        Password: password,
+                        RePassword: reEnter
                     }
 
                 );
@@ -295,11 +204,10 @@ function Signup() {
             localStorage.setItem(
 
                 "token",
+
                 response.data.token
 
             );
-
-            alert(response.data.message);
 
             navigate("/dashboard");
 
@@ -323,308 +231,337 @@ function Signup() {
 
         }
 
+        finally {
+
+            setLoading(false);
+
+        }
+
     };
+
+    // =========================
+    // JSX
+    // =========================
 
     return (
 
-        <>
+        <div
+
+            className='min-h-screen flex items-center justify-center px-4'
+
+            style={{
+
+                backgroundImage:
+                    `url(${bg_img})`,
+
+                backgroundSize: 'cover',
+
+                backgroundPosition: 'center'
+
+            }}
+
+        >
+
             <div
-                className='flex justify-center items-center min-h-screen py-5'
+
+                className='w-full max-w-md rounded-3xl p-8 shadow-2xl'
+
                 style={{
-                    backgroundImage: `url(${bg_img})`,
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center'
+
+                    background:
+                        'rgba(255,255,255,0.1)',
+
+                    backdropFilter:
+                        'blur(15px)',
+
+                    border:
+                        '1px solid rgba(255,255,255,0.2)'
+
                 }}
+
             >
 
-                <div
-                    className='mt-4 shadow-lg rounded-2xl p-4 relative bg-transparent'
-                    style={{
-                        width: '500px',
-                        background: 'rgba(255,255,255,0.1)',
-                        backdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(255,255,255,0.2)'
-                    }}
-                >
+                {/* LOGO */}
 
-                    <div className='text-center mb-4'>
+                <div className='flex flex-col items-center mb-8'>
 
-                        <h2 className='text-white font-bold mt-2 flex items-center justify-center gap-2'>
+                    <img
 
-                            <img
-                                src={img}
-                                alt='Sekura Logo'
-                                style={{
-                                    width: '55px',
-                                    height: '55px',
-                                    objectFit: 'contain'
-                                }}
-                            />
+                        src={img}
 
-                            Sekura
+                        alt='Sekura Logo'
 
-                        </h2>
+                        className='w-16 h-16 object-contain mb-2'
+
+                    />
+
+                    <h1 className='text-white text-3xl font-bold'>
+
+                        Sekura
+
+                    </h1>
+
+                    <p className='text-gray-200 text-sm mt-1'>
+
+                        Secure Your Account
+
+                    </p>
+
+                </div>
+
+                {/* FORM */}
+
+                <div className='space-y-5'>
+
+                    {/* NAME */}
+
+                    <input
+
+                        type='text'
+
+                        placeholder='Enter your name'
+
+                        value={name}
+
+                        onChange={(e) =>
+                            setName(e.target.value)
+                        }
+
+                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
+
+                    />
+
+                    {/* EMAIL */}
+
+                    <div>
+
+                        <input
+
+                            type='email'
+
+                            placeholder='Enter your email'
+
+                            value={email}
+
+                            onChange={(e) =>
+                                setEmail(e.target.value)
+                            }
+
+                            className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
+
+                        />
+
+                        {
+
+                            emailError && (
+
+                                <p className='text-red-400 text-sm mt-1'>
+
+                                    {emailError}
+
+                                </p>
+
+                            )
+
+                        }
 
                     </div>
 
-                    <form className='flex flex-col items-center gap-4'>
+                    {/* PASSWORD */}
 
-                        {/* NAME */}
+                    <input
 
-                        <div className='h-[60px] w-[450px] ml-24'>
+                        type='password'
 
-                            <input
-                                className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
-                                placeholder='Name'
-                                value={name}
-                                onChange={(e) => {
+                        placeholder='Enter password'
 
-                                    setName(e.target.value);
+                        value={password}
 
-                                    validateName(
-                                        e.target.value
-                                    );
+                        onChange={(e) =>
+                            setPassword(e.target.value)
+                        }
 
-                                }}
-                                style={inputStyle}
-                            />
+                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
 
-                            {
-                                nameError && (
+                    />
 
-                                    <p className='text-red-500 m-0'>
-                                        {nameError}
-                                    </p>
+                    {/* RE PASSWORD */}
 
-                                )
-                            }
+                    <input
 
-                        </div>
+                        type='password'
 
-                        {/* EMAIL */}
+                        placeholder='Re-enter password'
 
-                        <div className='w-[450px] ml-24'>
+                        value={reEnter}
 
-                            <input
-                                type='email'
-                                className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
-                                placeholder='sample123@gmail.com'
-                                value={email}
-                                onChange={(e) => {
+                        onChange={(e) =>
+                            setReEnter(e.target.value)
+                        }
 
-                                    setEmail(e.target.value);
+                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
 
-                                    validateEmail(
-                                        e.target.value
-                                    );
+                    />
 
-                                }}
-                                style={inputStyle}
-                            />
+                    {/* SEND OTP */}
 
-                            {
-                                emailError && (
+                    {
 
-                                    <p className='text-red-500 m-0'>
-                                        {emailError}
-                                    </p>
+                        !otpSent && (
 
-                                )
-                            }
+                            <button
 
-                            {
-                                emailValid &&
-                                !otpSent && (
+                                onClick={sendOTP}
 
-                                    <button
-                                        type='button'
-                                        onClick={sendOTP}
-                                        className='bg-cyan-500 text-white px-4 py-2 rounded mt-2'
-                                    >
+                                disabled={loading}
 
-                                        Send OTP
+                                className='w-full bg-cyan-500 hover:bg-cyan-600 transition-all text-white font-semibold py-3 rounded-xl'
 
-                                    </button>
+                            >
 
-                                )
-                            }
+                                {
 
-                            {
-                                otpSent &&
-                                !otpVerified && (
+                                    loading
+                                        ? "Sending OTP..."
+                                        : "Send OTP"
 
-                                    <div className='mt-2'>
+                                }
 
-                                        <input
+                            </button>
 
-                                            type='text'
+                        )
 
-                                            placeholder='Enter OTP'
+                    }
 
-                                            value={otp}
+                    {/* OTP SECTION */}
 
-                                            onChange={(e) =>
-                                                setOtp(e.target.value)
-                                            }
+                    {
 
-                                            className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
+                        otpSent &&
+                        !otpVerified && (
 
-                                            style={inputStyle}
+                            <div className='space-y-4'>
 
-                                        />
+                                <input
 
-                                        <button
-                                            type='button'
-                                            onClick={verifyOTP}
-                                            className='bg-green-500 text-white px-4 py-2 rounded mt-2'
-                                        >
+                                    type='text'
 
-                                            Verify OTP
+                                    placeholder='Enter OTP'
 
-                                        </button>
+                                    value={otp}
 
-                                    </div>
+                                    onChange={(e) =>
+                                        setOtp(e.target.value)
+                                    }
 
-                                )
-                            }
+                                    className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
 
-                            {
-                                otpVerified && (
-
-                                    <p className='text-green-400 mt-2'>
-
-                                        Email Verified Successfully
-
-                                    </p>
-
-                                )
-                            }
-
-                        </div>
-
-                        {/* PASSWORD */}
-
-                        <div className='h-[60px] w-[450px] ml-24'>
-
-                            <input
-                                type='password'
-                                className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
-                                placeholder='Password'
-                                value={password}
-                                onChange={(e) => {
-
-                                    setPassword(
-                                        e.target.value
-                                    );
-
-                                    validatePassword(
-                                        e.target.value
-                                    );
-
-                                }}
-                                style={inputStyle}
-                            />
-
-                            {
-                                passwordError && (
-
-                                    <p className='text-red-500 m-0'>
-                                        {passwordError}
-                                    </p>
-
-                                )
-                            }
-
-                        </div>
-
-                        {/* RE PASSWORD */}
-
-                        <div className='h-[60px] w-[450px] ml-24'>
-
-                            <input
-                                type='password'
-                                className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
-                                placeholder='Re-enter Password'
-                                value={reEnter}
-                                onChange={(e) => {
-
-                                    setReEnter(
-                                        e.target.value
-                                    );
-
-                                    validateRePassword(
-
-                                        e.target.value,
-
-                                        password
-
-                                    );
-
-                                }}
-                                style={inputStyle}
-                            />
-
-                            {
-                                rePasswordError && (
-
-                                    <p className='text-red-500 m-0'>
-                                        {rePasswordError}
-                                    </p>
-
-                                )
-                            }
-
-                        </div>
-
-                        {/* SIGNUP */}
-
-                        {
-                            otpVerified && (
+                                />
 
                                 <button
-                                    type='button'
-                                    className={`
-                                        rounded w-[300px] py-2 font-semibold text-white transition-colors
-                                        ${isFormValid
-                                            ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-                                            : 'bg-gray-500 cursor-not-allowed'}
-                                    `}
-                                    disabled={!isFormValid}
-                                    onClick={handleSignup}
+
+                                    onClick={verifyOTP}
+
+                                    disabled={loading}
+
+                                    className='w-full bg-green-500 hover:bg-green-600 transition-all text-white font-semibold py-3 rounded-xl'
+
                                 >
 
-                                    Signup
+                                    {
+
+                                        loading
+                                            ? "Verifying..."
+                                            : "Verify OTP"
+
+                                    }
 
                                 </button>
 
-                            )
-                        }
+                            </div>
 
-                        <p className='text-white'>
+                        )
 
-                            I Have Account?{" "}
+                    }
 
-                            <Link
-                                to="/login"
-                                className='text-cyan-400 no-underline font-semibold'
+                    {/* VERIFIED */}
+
+                    {
+
+                        otpVerified && (
+
+                            <div className='bg-green-500/20 border border-green-400 rounded-xl p-3 text-center'>
+
+                                <p className='text-green-300 font-medium'>
+
+                                    Email Verified Successfully
+
+                                </p>
+
+                            </div>
+
+                        )
+
+                    }
+
+                    {/* SIGNUP */}
+
+                    {
+
+                        otpVerified && (
+
+                            <button
+
+                                onClick={handleSignup}
+
+                                disabled={loading}
+
+                                className='w-full bg-blue-600 hover:bg-blue-700 transition-all text-white font-semibold py-3 rounded-xl'
+
                             >
 
-                                Login to Account
+                                {
 
-                            </Link>
+                                    loading
+                                        ? "Creating Account..."
+                                        : "Signup"
 
-                        </p>
+                                }
 
-                    </form>
+                            </button>
+
+                        )
+
+                    }
+
+                    {/* LOGIN */}
+
+                    <p className='text-center text-gray-200 text-sm pt-2'>
+
+                        Already have an account?{" "}
+
+                        <Link
+
+                            to="/login"
+
+                            className='text-cyan-300 font-semibold no-underline'
+
+                        >
+
+                            Login
+
+                        </Link>
+
+                    </p>
 
                 </div>
 
             </div>
 
-        </>
+        </div>
 
     );
+
 }
 
 export default Signup;
