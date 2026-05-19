@@ -5,7 +5,7 @@ import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 
 import connectDB from './config/db.js';
-import transporter from './config/mail.js'
+import transporter from './config/mail.js';
 
 import User from './user.js';
 
@@ -18,11 +18,6 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
-
-const otpStore = {};
-
-console.log(process.env.EMAIL_USER);
-console.log(process.env.EMAIL_PASS);
 
 // ======================================
 // HOME ROUTE
@@ -42,9 +37,67 @@ app.post("/send-otp", async (req, res) => {
 
     try {
 
-        const { Email } = req.body;
+        const {
+            Name,
+            Email,
+            Password
+        } = req.body;
 
+        // =========================
+        // NAME VALIDATION
+        // =========================
+
+        if (!Name || Name.length < 3) {
+
+            return res.status(400).json({
+
+                message:
+                    "Name must contain minimum 3 characters"
+
+            });
+
+        }
+
+        // =========================
+        // EMAIL VALIDATION
+        // =========================
+
+        const emailPattern =
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailPattern.test(Email)) {
+
+            return res.status(400).json({
+
+                message:
+                    "Invalid Email Address"
+
+            });
+
+        }
+
+        // =========================
+        // PASSWORD VALIDATION
+        // =========================
+
+        const passwordPattern =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+        if (!passwordPattern.test(Password)) {
+
+            return res.status(400).json({
+
+                message:
+                    "Password must contain uppercase, lowercase, number and special character"
+
+            });
+
+        }
+
+        // =========================
         // CHECK EXISTING USER
+        // =========================
+
         const existingUser =
             await User.findOne({
 
@@ -52,7 +105,10 @@ app.post("/send-otp", async (req, res) => {
 
             });
 
-        if (existingUser) {
+        if (
+            existingUser &&
+            existingUser.isVerified
+        ) {
 
             return res.status(409).json({
 
@@ -63,7 +119,10 @@ app.post("/send-otp", async (req, res) => {
 
         }
 
+        // =========================
         // GENERATE OTP
+        // =========================
+
         const verificationCode =
             Math.floor(
 
@@ -71,47 +130,80 @@ app.post("/send-otp", async (req, res) => {
 
             ).toString();
 
-        // STORE OTP
-        otpStore[Email] = {
+        // =========================
+        // SAVE TEMP USER
+        // =========================
 
-            otp: verificationCode,
+        if (!existingUser) {
 
-            expires:
-                Date.now() + 5 * 60 * 1000
+            const hashedPassword =
+                await argon2.hash(Password);
 
-        };
+            await User.create({
 
+                name: Name,
+
+                email: Email,
+
+                password: hashedPassword,
+
+                verificationCode,
+
+                verificationCodeExpires:
+                    Date.now() + 5 * 60 * 1000
+
+            });
+
+        }
+
+        else {
+
+            existingUser.verificationCode =
+                verificationCode;
+
+            existingUser.verificationCodeExpires =
+                Date.now() + 5 * 60 * 1000;
+
+            await existingUser.save();
+
+        }
+
+        // =========================
         // SEND EMAIL
+        // =========================
+
         await transporter.sendMail({
 
-            from: `"Sekura" <${process.env.EMAIL_USER}>`,
+            from:
+                `"Sekura" <${process.env.EMAIL_USER}>`,
 
             to: Email,
 
-            replyTo: process.env.EMAIL_USER,
+            replyTo:
+                process.env.EMAIL_USER,
 
             subject:
                 "Sekura Verification Code",
 
             html: `
 
-        <div style="font-family: Arial; padding: 20px;">
+                <div style="font-family: Arial; padding: 20px;">
 
-            <h2>Sekura Email Verification</h2>
+                    <h2>Sekura Email Verification</h2>
 
-            <p>Your OTP for Signup is:</p>
+                    <p>Your OTP for Signup is:</p>
 
-            <h1 style="letter-spacing: 5px; color: #06b6d4;">
-                ${verificationCode}
-            </h1>
+                    <h1 style="letter-spacing: 5px; color: #06b6d4;">
+                        ${verificationCode}
+                    </h1>
 
-            <p>
-                This OTP is valid for 5 minutes.
-            </p>
+                    <p>
+                        This OTP is valid for 5 minutes.
+                    </p>
 
-        </div>
+                </div>
 
-    `
+            `
 
         });
 
@@ -143,7 +235,7 @@ app.post("/send-otp", async (req, res) => {
 // VERIFY OTP API
 // ======================================
 
-app.post("/verify-otp", (req, res) => {
+app.post("/verify-otp", async (req, res) => {
 
     try {
 
@@ -152,21 +244,34 @@ app.post("/verify-otp", (req, res) => {
             OTP
         } = req.body;
 
-        // OTP EXIST?
-        if (!otpStore[Email]) {
+        // =========================
+        // FIND USER
+        // =========================
 
-            return res.status(400).json({
+        const user =
+            await User.findOne({
+
+                email: Email
+
+            });
+
+        if (!user) {
+
+            return res.status(404).json({
 
                 message:
-                    "OTP not found"
+                    "User not found"
 
             });
 
         }
 
-        // OTP EXPIRED?
+        // =========================
+        // OTP EXPIRED
+        // =========================
+
         if (
-            otpStore[Email].expires
+            user.verificationCodeExpires
             < Date.now()
         ) {
 
@@ -179,9 +284,12 @@ app.post("/verify-otp", (req, res) => {
 
         }
 
-        // OTP MATCH?
+        // =========================
+        // OTP VALIDATION
+        // =========================
+
         if (
-            otpStore[Email].otp !== OTP
+            user.verificationCode !== OTP
         ) {
 
             return res.status(400).json({
@@ -193,84 +301,22 @@ app.post("/verify-otp", (req, res) => {
 
         }
 
-        // DELETE OTP AFTER SUCCESS
-        delete otpStore[Email];
+        // =========================
+        // VERIFY USER
+        // =========================
 
-        res.status(200).json({
+        user.isVerified = true;
 
-            message:
-                "OTP Verified"
+        user.verificationCode = null;
 
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-
-            message:
-                "Server Error"
-
-        });
-
-    }
-
-});
-
-// ======================================
-// SIGNUP API
-// ======================================
-
-app.post("/newUser", async (req, res) => {
-
-    try {
-
-        const {
-            Name,
-            Email,
-            Password
-        } = req.body;
-
-        // CHECK EXISTING USER
-        const existingUser =
-            await User.findOne({
-
-                email: Email
-
-            });
-
-        if (existingUser) {
-
-            return res.status(409).json({
-
-                message:
-                    "User already Exists"
-
-            });
-
-        }
-
-        // HASH PASSWORD
-        const hashedPassword =
-            await argon2.hash(Password);
-
-        // CREATE USER
-        const user = new User({
-
-            name: Name,
-
-            email: Email,
-
-            password: hashedPassword
-
-        });
+        user.verificationCodeExpires = null;
 
         await user.save();
 
+        // =========================
         // GENERATE JWT
+        // =========================
+
         const token = jwt.sign(
 
             {
@@ -286,10 +332,10 @@ app.post("/newUser", async (req, res) => {
 
         );
 
-        res.status(201).json({
+        res.status(200).json({
 
             message:
-                "Signup Successful",
+                "OTP Verified",
 
             token,
 
@@ -335,6 +381,10 @@ app.post("/login", async (req, res) => {
             Password
         } = req.body;
 
+        // =========================
+        // FIND USER
+        // =========================
+
         const userValidation =
             await User.findOne({
 
@@ -353,11 +403,30 @@ app.post("/login", async (req, res) => {
 
         }
 
+        // =========================
+        // EMAIL VERIFIED?
+        // =========================
+
+        if (!userValidation.isVerified) {
+
+            return res.status(401).json({
+
+                message:
+                    "Please verify your email"
+
+            });
+
+        }
+
+        // =========================
         // VERIFY PASSWORD
+        // =========================
+
         const validPassword =
             await argon2.verify(
 
                 userValidation.password,
+
                 Password
 
             );
@@ -373,7 +442,10 @@ app.post("/login", async (req, res) => {
 
         }
 
+        // =========================
         // GENERATE JWT
+        // =========================
+
         const token = jwt.sign(
 
             {

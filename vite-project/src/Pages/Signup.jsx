@@ -8,10 +8,6 @@ import bg_img from '../assets/image.png';
 
 function Signup() {
 
-    // =========================
-    // NAVIGATE
-    // =========================
-
     const navigate = useNavigate();
 
     // =========================
@@ -24,8 +20,11 @@ function Signup() {
     const [reEnter, setReEnter] = useState("");
 
     const [emailValid, setEmailValid] = useState(false);
+
     const [otp, setOtp] = useState("");
+
     const [otpSent, setOtpSent] = useState(false);
+
     const [otpVerified, setOtpVerified] = useState(false);
 
     const [emailError, setEmailError] = useState("");
@@ -40,10 +39,9 @@ function Signup() {
     const isFormValid =
         name &&
         email &&
-        emailValid &&
-        otp &&
         password &&
         reEnter &&
+        otpVerified &&
         !nameError &&
         !emailError &&
         !passwordError &&
@@ -78,7 +76,7 @@ function Signup() {
         else if (!emailPattern.test(email)) {
 
             setEmailError(
-                'Enter the valid email address'
+                'Enter valid email address'
             );
 
             setEmailValid(false);
@@ -91,8 +89,8 @@ function Signup() {
             setEmailValid(true);
 
         }
-        };
 
+    };
 
     // =========================
     // PASSWORD VALIDATION
@@ -100,16 +98,21 @@ function Signup() {
 
     const validatePassword = (password) => {
 
+        const passwordPattern =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
         if (password === '') {
 
             setPasswordError('');
 
         }
 
-        else if (password.length < 8) {
+        else if (
+            !passwordPattern.test(password)
+        ) {
 
             setPasswordError(
-                'Password must contain minimum 8 characters'
+                'Password must contain uppercase, lowercase, number and special character'
             );
 
         }
@@ -123,7 +126,7 @@ function Signup() {
     };
 
     // =========================
-    // RE-PASSWORD VALIDATION
+    // RE PASSWORD VALIDATION
     // =========================
 
     const validateRePassword = (
@@ -137,7 +140,9 @@ function Signup() {
 
         }
 
-        else if (rePassword !== password) {
+        else if (
+            rePassword !== password
+        ) {
 
             setRePasswordError(
                 "Password doesn't match"
@@ -168,7 +173,7 @@ function Signup() {
         else if (name.length < 3) {
 
             setNameError(
-                'Name must contain more than 3 characters'
+                'Name must contain minimum 3 characters'
             );
 
         }
@@ -187,22 +192,19 @@ function Signup() {
 
     const sendOTP = async () => {
 
+        setOtpSent(true);
+
         try {
 
-            const response =
-                await axios.post(
+            await axios.post(
 
-                    "http://localhost:5000/send-otp",
+                "http://localhost:5000/send-otp",
 
-                    {
-                        Email: email
-                    }
+                {
+                    Email: email
+                }
 
-                );
-
-            alert(response.data.message);
-
-            setOtpSent(true);
+            );
 
         }
 
@@ -218,7 +220,50 @@ function Signup() {
 
             else {
 
-                alert("Server error");
+                alert("Server Error");
+
+            }
+
+        }
+
+    };
+
+    // =========================
+    // VERIFY OTP
+    // =========================
+
+    const verifyOTP = async () => {
+
+        try {
+
+            await axios.post(
+
+                "http://localhost:5000/verify-otp",
+
+                {
+                    Email: email,
+                    OTP: otp
+                }
+
+            );
+
+            setOtpVerified(true);
+
+        }
+
+        catch (error) {
+
+            if (error.response) {
+
+                alert(
+                    error.response.data.message
+                );
+
+            }
+
+            else {
+
+                alert("Server Error");
 
             }
 
@@ -234,35 +279,19 @@ function Signup() {
 
         try {
 
-            // VERIFY OTP
-            await axios.post(
-
-                "http://localhost:5000/verify-otp",
-
-                {
-                    Email: email,
-                    OTP: otp
-                }
-
-            );
-
-            setOtpVerified(true);
-
-            // CREATE ACCOUNT
             const response =
                 await axios.post(
 
-                    'http://localhost:5000/newUser',
+                    "http://localhost:5000/newUser",
 
                     {
                         Name: name,
-                        Email: email, 
+                        Email: email,
                         Password: password
                     }
 
                 );
 
-            // STORE JWT TOKEN
             localStorage.setItem(
 
                 "token",
@@ -296,10 +325,6 @@ function Signup() {
 
     };
 
-    // =========================
-    // JSX
-    // =========================
-
     return (
 
         <>
@@ -323,8 +348,6 @@ function Signup() {
                     }}
                 >
 
-                    {/* LOGO */}
-
                     <div className='text-center mb-4'>
 
                         <h2 className='text-white font-bold mt-2 flex items-center justify-center gap-2'>
@@ -345,12 +368,12 @@ function Signup() {
 
                     </div>
 
-                    {/* FORM */}
-
                     <form className='flex flex-col items-center gap-4'>
 
                         {/* NAME */}
+
                         <div className='h-[60px] w-[450px] ml-24'>
+
                             <input
                                 className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
                                 placeholder='Name'
@@ -358,22 +381,29 @@ function Signup() {
                                 onChange={(e) => {
 
                                     setName(e.target.value);
-                                    validateName(e.target.value);
+
+                                    validateName(
+                                        e.target.value
+                                    );
 
                                 }}
                                 style={inputStyle}
                             />
 
-                            {nameError && (
+                            {
+                                nameError && (
 
-                                <p className='text-red-500 m-0'>
-                                    {nameError}
-                                </p>
+                                    <p className='text-red-500 m-0'>
+                                        {nameError}
+                                    </p>
 
-                            )}
+                                )
+                            }
+
                         </div>
 
                         {/* EMAIL */}
+
                         <div className='w-[450px] ml-24'>
 
                             <input
@@ -384,19 +414,24 @@ function Signup() {
                                 onChange={(e) => {
 
                                     setEmail(e.target.value);
-                                    validateEmail(e.target.value);
+
+                                    validateEmail(
+                                        e.target.value
+                                    );
 
                                 }}
                                 style={inputStyle}
                             />
 
-                            {emailError && (
+                            {
+                                emailError && (
 
-                                <p className='text-red-500 m-0'>
-                                    {emailError}
-                                </p>
+                                    <p className='text-red-500 m-0'>
+                                        {emailError}
+                                    </p>
 
-                            )}
+                                )
+                            }
 
                             {
                                 emailValid &&
@@ -439,16 +474,39 @@ function Signup() {
 
                                         />
 
+                                        <button
+                                            type='button'
+                                            onClick={verifyOTP}
+                                            className='bg-green-500 text-white px-4 py-2 rounded mt-2'
+                                        >
+
+                                            Verify OTP
+
+                                        </button>
+
                                     </div>
+
+                                )
+                            }
+
+                            {
+                                otpVerified && (
+
+                                    <p className='text-green-400 mt-2'>
+
+                                        Email Verified Successfully
+
+                                    </p>
 
                                 )
                             }
 
                         </div>
 
-
                         {/* PASSWORD */}
+
                         <div className='h-[60px] w-[450px] ml-24'>
+
                             <input
                                 type='password'
                                 className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
@@ -456,24 +514,34 @@ function Signup() {
                                 value={password}
                                 onChange={(e) => {
 
-                                    setPassword(e.target.value);
-                                    validatePassword(e.target.value);
+                                    setPassword(
+                                        e.target.value
+                                    );
+
+                                    validatePassword(
+                                        e.target.value
+                                    );
 
                                 }}
                                 style={inputStyle}
                             />
 
-                            {passwordError && (
+                            {
+                                passwordError && (
 
-                                <p className='text-red-500 m-0'>
-                                    {passwordError}
-                                </p>
+                                    <p className='text-red-500 m-0'>
+                                        {passwordError}
+                                    </p>
 
-                            )}
+                                )
+                            }
+
                         </div>
 
-                        {/* RE-ENTER PASSWORD */}
+                        {/* RE PASSWORD */}
+
                         <div className='h-[60px] w-[450px] ml-24'>
+
                             <input
                                 type='password'
                                 className='rounded-2xl shadow-sm border-2 border-gray-300 p-2 outline-none'
@@ -481,43 +549,57 @@ function Signup() {
                                 value={reEnter}
                                 onChange={(e) => {
 
-                                    setReEnter(e.target.value);
+                                    setReEnter(
+                                        e.target.value
+                                    );
 
                                     validateRePassword(
+
                                         e.target.value,
+
                                         password
+
                                     );
 
                                 }}
                                 style={inputStyle}
                             />
 
-                            {rePasswordError && (
+                            {
+                                rePasswordError && (
 
-                                <p className='text-red-500 m-0'>
-                                    {rePasswordError}
-                                </p>
+                                    <p className='text-red-500 m-0'>
+                                        {rePasswordError}
+                                    </p>
 
-                            )}
+                                )
+                            }
+
                         </div>
 
-                        {/* SIGNUP BUTTON */}
+                        {/* SIGNUP */}
 
-                        <button
-                            type='button'
-                            className={`
-                                rounded w-[300px] py-2 font-semibold text-white transition-colors
-                                ${isFormValid
-                                    ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
-                                    : 'bg-gray-500 cursor-not-allowed'}
-                            `}
-                            disabled={!isFormValid}
-                            onClick={handleSignup}
-                        >
-                            Signup
-                        </button>
+                        {
+                            otpVerified && (
 
-                        {/* LOGIN LINK */}
+                                <button
+                                    type='button'
+                                    className={`
+                                        rounded w-[300px] py-2 font-semibold text-white transition-colors
+                                        ${isFormValid
+                                            ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                                            : 'bg-gray-500 cursor-not-allowed'}
+                                    `}
+                                    disabled={!isFormValid}
+                                    onClick={handleSignup}
+                                >
+
+                                    Signup
+
+                                </button>
+
+                            )
+                        }
 
                         <p className='text-white'>
 
@@ -527,7 +609,9 @@ function Signup() {
                                 to="/login"
                                 className='text-cyan-400 no-underline font-semibold'
                             >
+
                                 Login to Account
+
                             </Link>
 
                         </p>
