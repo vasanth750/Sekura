@@ -2,73 +2,91 @@ import {
   Routes,
   Route,
   useLocation,
-  Navigate
-} from 'react-router-dom';
+  Navigate,
+} from "react-router-dom";
 
-import Signup from './Pages/Signup.jsx';
-import Login from './Pages/Login.jsx';
-import Footer from './components/footer/Footer.jsx';
-import Header from './components/header/Header.jsx';
-import Secrets from './Pages/Secrets.jsx';
-import CreateRequest from './Pages/Request.jsx';
-import RequestViewr from './Pages/RequestViewing.jsx';
+import Signup from "./Pages/Signup.jsx";
+import Login from "./Pages/Login.jsx";
+import Footer from "./components/footer/Footer.jsx";
+import Header from "./components/header/Header.jsx";
+import Secrets from "./Pages/Secrets.jsx";
+import CreateRequest from "./Pages/Request.jsx";
+import RequestViewr from "./Pages/RequestViewing.jsx";
 
-import Privacy from './components/footer/Privacy.jsx';
-import Terms from './components/footer/Terms.jsx';
-import Contact from './components/footer/Contact.jsx';
-import Dashboard from './Pages/dashBoard.jsx';
+import Privacy from "./components/footer/Privacy.jsx";
+import Terms from "./components/footer/Terms.jsx";
+import Contact from "./components/footer/Contact.jsx";
+import Dashboard from "./Pages/dashBoard.jsx";
+
+function ProtectedRoute({ children }) {
+  const token = sessionStorage.getItem("token");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
 function Layout() {
-
   const location = useLocation();
 
-  const hideHeaderFooterRoutes = ['/login', '/signup'];
+  const hideHeaderFooterRoutes = ["/login", "/signup"];
 
   return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {!hideHeaderFooterRoutes.includes(location.pathname) && <Header />}
 
-    <div className='min-h-screen bg-gray-50 flex flex-col'>
-
-      {
-        !hideHeaderFooterRoutes.includes(location.pathname)
-        &&
-        <Header />
-      }
-      <main className='flex-1'>
+      <main className="flex-1">
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-          <Route path='/' element={<Navigate to="/login" />} />
+          <Route path="/login" element={<Login />} />
 
-          <Route path='/login' element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-          <Route path='/signup' element={<Signup />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-          <Route path='/secrets' element={<Secrets />} />
+          <Route
+            path="/secrets"
+            element={
+              <ProtectedRoute>
+                <Secrets />
+              </ProtectedRoute>
+            }
+          />
 
-          <Route path='/dashBoard' element={<Dashboard />} />
+          <Route
+            path="/request"
+            element={
+              <ProtectedRoute>
+                <CreateRequest />
+              </ProtectedRoute>
+            }
+          />
 
-          <Route path='/privacy-policy' element={<Privacy />} />
+          <Route path="/request/:id" element={<RequestViewr />} />
 
-          <Route path='/terms-condition' element={<Terms />} />
+          <Route path="/privacy-policy" element={<Privacy />} />
 
-          <Route path='/contact-us' element={<Contact />} />
+          <Route path="/terms-condition" element={<Terms />} />
 
-          <Route path="/request" element={<CreateRequest />} />
-
-          <Route path='/request/:id' element={<RequestViewr />} />
-
+          <Route path="/contact-us" element={<Contact />} />
         </Routes>
       </main>
-      {
-        !hideHeaderFooterRoutes.includes(location.pathname)
-        &&
-        <Footer />
-      }
 
-    </div >
-
+      {!hideHeaderFooterRoutes.includes(location.pathname) && <Footer />}
+    </div>
   );
 }
 
 export default function App() {
-
   return <Layout />;
 }
