@@ -45,7 +45,11 @@ app.post("/send-otp", async (req, res) => {
 
     try {
 
-        const { Email } = req.body;
+        const {
+            
+            Email
+        } = req.body;
+
 
         // =========================
         // EMAIL VALIDATION
@@ -64,6 +68,8 @@ app.post("/send-otp", async (req, res) => {
             });
 
         }
+
+
 
         // =========================
         // CHECK EXISTING USER
@@ -480,16 +486,7 @@ app.post("/login", async (req, res) => {
         // EMAIL VERIFIED?
         // =========================
 
-        if (!userValidation.isVerified) {
-
-            return res.status(401).json({
-
-                message:
-                    "Please verify your email"
-
-            });
-
-        }
+       
 
         // =========================
         // VERIFY PASSWORD

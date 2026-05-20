@@ -48,7 +48,7 @@ export default function ProfileButton({
     <>
       <button
         onClick={() => setProfileOpen(true)}
-        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden border border-gray-300"
+        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden border border-gray-300 cursor-pointer"
       >
         <img
           src={profileImage}

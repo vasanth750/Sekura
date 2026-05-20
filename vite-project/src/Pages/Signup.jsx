@@ -185,15 +185,25 @@ function Signup() {
 
             );
 
-            localStorage.setItem(
+            // =========================
+            // STORE TOKEN
+            // =========================
 
+            sessionStorage.setItem(
                 "token",
-
                 response.data.token
-
             );
 
-            navigate("/dashboard");
+            // =========================
+            // STORE USER
+            // =========================
+
+            sessionStorage.setItem(
+                "user",
+                JSON.stringify(response.data.user)
+            );
+
+            navigate("/dashboard", { replace: true });
 
         }
 

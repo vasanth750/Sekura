@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import ProfileButton from "./profile";
+import { Pointer, PointerIcon } from "lucide-react";
 
 function NavLinks({
   links,
@@ -20,11 +21,10 @@ function NavLinks({
             setProfileOpen(false);
             if (mobile) setSidebarOpen(false);
           }}
-          className={`font-bold text-sm lg:text-base transition-colors ${
-            location.pathname === path
+          className={`font-bold text-sm lg:text-base transition-colors ${location.pathname === path
               ? "text-blue-600"
               : "text-gray-600 hover:text-blue-600"
-          }`}
+            }`}
         >
           {name}
         </Link>
@@ -60,14 +60,14 @@ export default function Header() {
   ];
 
   const logout = () => {
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
 
-  setProfileOpen(false);
-  setSidebarOpen(false);
+    setProfileOpen(false);
+    setSidebarOpen(false);
 
-  navigate("/login", { replace: true });
-};
+    navigate("/login", { replace: true });
+  };
 
   return (
     <header className="w-full h-16 sm:h-20 border-b bg-white sticky top-0 z-50">
@@ -129,9 +129,8 @@ export default function Header() {
       )}
 
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 p-5 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 p-5 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center border-b pb-4">
           <h2 className="text-2xl font-bold text-blue-600">
