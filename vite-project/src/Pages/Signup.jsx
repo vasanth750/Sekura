@@ -1,11 +1,7 @@
 import { useState } from 'react';
-
 import axios from 'axios';
 
-import {
-    Link,
-    useNavigate
-} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import img from '../assets/SekuraLogo.png';
 import bg_img from '../assets/image.png';
@@ -18,32 +14,22 @@ function Signup() {
     // STATES
     // =========================
 
-    const [name, setName] =
-        useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [reEnter, setReEnter] = useState("");
+    const [otp, setOtp] = useState("");
 
-    const [email, setEmail] =
-        useState("");
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
 
-    const [password, setPassword] =
-        useState("");
+    const [loading, setLoading] = useState(false);
 
-    const [reEnter, setReEnter] =
-        useState("");
-
-    const [otp, setOtp] =
-        useState("");
-
-    const [otpSent, setOtpSent] =
-        useState(false);
-
-    const [otpVerified, setOtpVerified] =
-        useState(false);
-
-    const [loading, setLoading] =
-        useState(false);
-
-    const [emailError, setEmailError] =
-        useState("");
+    const [emailError, setEmailError] = useState("");
+    const [nameError, setNameError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [rePasswordError, setRePasswordError] = useState("");
+    const [otpError, setOtpError] = useState("");
 
     // =========================
     // EMAIL VALIDATION
@@ -51,14 +37,11 @@ function Signup() {
 
     const validateEmail = (email) => {
 
-        const emailPattern =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailPattern.test(email)) {
 
-            setEmailError(
-                "Enter valid email address"
-            );
+            setEmailError("Enter valid email address");
 
             return false;
 
@@ -104,15 +87,13 @@ function Signup() {
 
             if (error.response) {
 
-                alert(
-                    error.response.data.message
-                );
+                setEmailError(error.response.data.message);
 
             }
 
             else {
 
-                alert("Server Error");
+                setEmailError("Server Error");
 
             }
 
@@ -149,21 +130,21 @@ function Signup() {
 
             setOtpVerified(true);
 
+            setOtpError("");
+
         }
 
         catch (error) {
 
             if (error.response) {
 
-                alert(
-                    error.response.data.message
-                );
+                setOtpError(error.response.data.message);
 
             }
 
             else {
 
-                alert("Server Error");
+                setOtpError("Server Error");
 
             }
 
@@ -185,21 +166,24 @@ function Signup() {
 
         setLoading(true);
 
+        setNameError("");
+        setPasswordError("");
+        setRePasswordError("");
+
         try {
 
-            const response =
-                await axios.post(
+            const response = await axios.post(
 
-                    "http://localhost:5000/newUser",
+                "http://localhost:5000/newUser",
 
-                    {
-                        Name: name,
-                        Email: email,
-                        Password: password,
-                        RePassword: reEnter
-                    }
+                {
+                    Name: name,
+                    Email: email,
+                    Password: password,
+                    RePassword: reEnter
+                }
 
-                );
+            );
 
             localStorage.setItem(
 
@@ -217,15 +201,30 @@ function Signup() {
 
             if (error.response) {
 
-                alert(
-                    error.response.data.message
-                );
+                const message =
+                    error.response.data.message;
 
-            }
+                if (message.includes("Name")) {
 
-            else {
+                    setNameError(message);
 
-                alert("Server Error");
+                }
+
+                else if (
+                    message.includes("match")
+                ) {
+
+                    setRePasswordError(message);
+
+                }
+
+                else if (
+                    message.includes("Password")
+                ) {
+
+                    setPasswordError(message);
+
+                }
 
             }
 
@@ -251,11 +250,8 @@ function Signup() {
 
             style={{
 
-                backgroundImage:
-                    `url(${bg_img})`,
-
+                backgroundImage: `url(${bg_img})`,
                 backgroundSize: 'cover',
-
                 backgroundPosition: 'center'
 
             }}
@@ -268,14 +264,9 @@ function Signup() {
 
                 style={{
 
-                    background:
-                        'rgba(255,255,255,0.1)',
-
-                    backdropFilter:
-                        'blur(15px)',
-
-                    border:
-                        '1px solid rgba(255,255,255,0.2)'
+                    background: 'rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(15px)',
+                    border: '1px solid rgba(255,255,255,0.2)'
 
                 }}
 
@@ -315,21 +306,43 @@ function Signup() {
 
                     {/* NAME */}
 
-                    <input
+                    <div>
 
-                        type='text'
+                        <input
 
-                        placeholder='Enter your name'
+                            type='text'
 
-                        value={name}
+                            placeholder='Enter your name'
 
-                        onChange={(e) =>
-                            setName(e.target.value)
+                            value={name}
+
+                            onChange={(e) => {
+
+                                setName(e.target.value);
+
+                                setNameError("");
+
+                            }}
+
+                            className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
+
+                        />
+
+                        {
+
+                            nameError && (
+
+                                <p className='text-red-400 text-sm mt-1'>
+
+                                    {nameError}
+
+                                </p>
+
+                            )
+
                         }
 
-                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
-
-                    />
+                    </div>
 
                     {/* EMAIL */}
 
@@ -343,9 +356,13 @@ function Signup() {
 
                             value={email}
 
-                            onChange={(e) =>
-                                setEmail(e.target.value)
-                            }
+                            onChange={(e) => {
+
+                                setEmail(e.target.value);
+
+                                setEmailError("");
+
+                            }}
 
                             className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
 
@@ -369,39 +386,83 @@ function Signup() {
 
                     {/* PASSWORD */}
 
-                    <input
+                    <div>
 
-                        type='password'
+                        <input
 
-                        placeholder='Enter password'
+                            type='password'
 
-                        value={password}
+                            placeholder='Enter password'
 
-                        onChange={(e) =>
-                            setPassword(e.target.value)
+                            value={password}
+
+                            onChange={(e) => {
+
+                                setPassword(e.target.value);
+
+                                setPasswordError("");
+
+                            }}
+
+                            className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
+
+                        />
+
+                        {
+
+                            passwordError && (
+
+                                <p className='text-red-400 text-sm mt-1'>
+
+                                    {passwordError}
+
+                                </p>
+
+                            )
+
                         }
 
-                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
-
-                    />
+                    </div>
 
                     {/* RE PASSWORD */}
 
-                    <input
+                    <div>
 
-                        type='password'
+                        <input
 
-                        placeholder='Re-enter password'
+                            type='password'
 
-                        value={reEnter}
+                            placeholder='Re-enter password'
 
-                        onChange={(e) =>
-                            setReEnter(e.target.value)
+                            value={reEnter}
+
+                            onChange={(e) => {
+
+                                setReEnter(e.target.value);
+
+                                setRePasswordError("");
+
+                            }}
+
+                            className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
+
+                        />
+
+                        {
+
+                            rePasswordError && (
+
+                                <p className='text-red-400 text-sm mt-1'>
+
+                                    {rePasswordError}
+
+                                </p>
+
+                            )
+
                         }
 
-                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
-
-                    />
+                    </div>
 
                     {/* SEND OTP */}
 
@@ -442,21 +503,43 @@ function Signup() {
 
                             <div className='space-y-4'>
 
-                                <input
+                                <div>
 
-                                    type='text'
+                                    <input
 
-                                    placeholder='Enter OTP'
+                                        type='text'
 
-                                    value={otp}
+                                        placeholder='Enter OTP'
 
-                                    onChange={(e) =>
-                                        setOtp(e.target.value)
+                                        value={otp}
+
+                                        onChange={(e) => {
+
+                                            setOtp(e.target.value);
+
+                                            setOtpError("");
+
+                                        }}
+
+                                        className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
+
+                                    />
+
+                                    {
+
+                                        otpError && (
+
+                                            <p className='text-red-400 text-sm mt-1'>
+
+                                                {otpError}
+
+                                            </p>
+
+                                        )
+
                                     }
 
-                                    className='w-full rounded-xl p-3 outline-none border border-gray-300 bg-white/90'
-
-                                />
+                                </div>
 
                                 <button
 
