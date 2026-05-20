@@ -35,7 +35,6 @@ export default function Dashboard() {
 
   const stats = [
     { title: "Total Secrets", value: "0" },
-    { title: "Team Members", value: "0" },
     { title: "Active Links", value: "0" },
     { title: "Expiring Soon", value: "0" },
   ];
@@ -63,7 +62,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 md:m-8 lg:mx-20">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 md:m-8 lg:mx-20">
         {stats.map((item, index) => (
           <div
             key={index}

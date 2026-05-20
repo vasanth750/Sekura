@@ -7,7 +7,6 @@ export default function Secrets() {
     const [secrets, setSecrets] = useState([
         {
             secretName: 'vasant',
-            accessRole: 'Production',
             status: 'Active',
             lastUpdated: '00.00'
         }
@@ -74,18 +73,18 @@ export default function Secrets() {
             </div>
 
             {/* Search Section */}
-            <div className="mt-8 bg-white border border-gray-300 rounded-2xl p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+            <div className="mt-8 bg-white border border-black-900 rounded-2xl p-4 flex flex-col lg:flex-row justify-between items-center gap-4">
 
                 <input
                     type="text"
                     placeholder="⌕ Search secrets by name, tags, or role..."
-                    className="w-full lg:w-[400px] h-[45px] px-4 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full lg:w-[400px] h-[45px] px-4 rounded-xl border border-black-900 outline-none focus:ring-2 focus:ring-blue-500"
                 />
 
             </div>
 
             {/* Table Section */}
-            <div className="mt-8 bg-white rounded-2xl border border-gray-300 overflow-hidden">
+            <div className="mt-8 bg-white rounded-2xl border border-black-900 overflow-hidden">
 
                 {/* Table Header */}
                 <div className="p-6 border-b border-gray-200">
@@ -104,14 +103,10 @@ export default function Secrets() {
                 <div className="overflow-x-auto">
 
                     {/* Header Row */}
-                    <div className="grid grid-cols-5 bg-blue-600 text-white text-sm font-semibold min-w-[700px]">
+                    <div className="grid grid-cols-4 bg-blue-600 text-white text-sm font-semibold min-w-[700px]">
 
                         <div className="p-4">
                             Secret Name
-                        </div>
-
-                        <div className="p-4">
-                            Access Role
                         </div>
 
                         <div className="p-4">
@@ -134,15 +129,11 @@ export default function Secrets() {
 
                             <div
                                 key={index}
-                                className="grid grid-cols-5 items-center border-b border-gray-200 hover:bg-gray-50 transition-all text-sm last:border-b-0 min-w-[700px]"
+                                className="grid grid-cols-4 items-center border-b border-gray-200 hover:bg-gray-50 transition-all text-sm last:border-b-0 min-w-[700px]"
                             >
 
                                 <div className="p-4">
                                     {secret.secretName}
-                                </div>
-
-                                <div className="p-4">
-                                    {secret.accessRole}
                                 </div>
 
                                 <div className="p-4">
