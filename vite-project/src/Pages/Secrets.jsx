@@ -1,19 +1,109 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddSecret from "../popup-page/addSecret";
 import CreateLink from "../popup-page/createLinks";
+import api from "../api";
 
 export default function Secrets() {
 
-    const [secrets, setSecrets] = useState([
-        {
-            secretName: 'vasant',
-            status: 'Active',
-            lastUpdated: '00.00'
-        }
-    ]);
-
+    const [secrets, setSecrets] = useState([]);
     const [showSecretPopup, setShowSecretPopup] = useState(false);
     const [showLinkPopup, setShowLinkPopup] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [viewedSecret, setViewedSecret] = useState(null);
+    const [actionLoading, setActionLoading] = useState("");
+
+    const fetchSecrets = async () => {
+        try {
+            setError("");
+            setLoading(true);
+
+            const response = await api.get("/api/encrypted-secrets");
+
+            setSecrets(response.data.secrets || []);
+        }
+
+        catch (error) {
+            setError(
+                error.response?.data?.message || "Unable to load secrets"
+            );
+        }
+
+        finally {
+            setLoading(false);
+        }
+    };
+
+    const addSecretToList = (secret) => {
+        setSecrets((currentSecrets) => [
+            secret,
+            ...currentSecrets
+        ]);
+    };
+
+    const viewSecret = async (secretId) => {
+        try {
+            setError("");
+            setActionLoading(secretId);
+
+            const response = await api.get(
+                `/api/encrypted-secrets/${secretId}/decrypt`
+            );
+
+            setViewedSecret(response.data.secret);
+        }
+
+        catch (error) {
+            setError(
+                error.response?.data?.message || "Unable to decrypt secret"
+            );
+        }
+
+        finally {
+            setActionLoading("");
+        }
+    };
+
+    const deleteSecret = async (secretId) => {
+        const shouldDelete = window.confirm(
+            "Delete this secret permanently?"
+        );
+
+        if (!shouldDelete) {
+            return;
+        }
+
+        try {
+            setError("");
+            setActionLoading(secretId);
+
+            await api.delete(`/api/encrypted-secrets/${secretId}`);
+
+            setSecrets((currentSecrets) =>
+                currentSecrets.filter((secret) =>
+                    (secret._id || secret.id) !== secretId
+                )
+            );
+
+            if ((viewedSecret?._id || viewedSecret?.id) === secretId) {
+                setViewedSecret(null);
+            }
+        }
+
+        catch (error) {
+            setError(
+                error.response?.data?.message || "Unable to delete secret"
+            );
+        }
+
+        finally {
+            setActionLoading("");
+        }
+    };
+
+    useEffect(() => {
+        fetchSecrets();
+    }, []);
 
     return (
 
@@ -22,7 +112,10 @@ export default function Secrets() {
             {/* Secret Popup */}
             {
                 showSecretPopup && (
-                    <AddSecret closePopup={() => setShowSecretPopup(false)} />
+                    <AddSecret
+                        closePopup={() => setShowSecretPopup(false)}
+                        onSecretCreated={addSecretToList}
+                    />
                 )
             }
 
@@ -30,6 +123,51 @@ export default function Secrets() {
             {
                 showLinkPopup && (
                     <CreateLink closePopup={() => setShowLinkPopup(false)} />
+                )
+            }
+
+            {/* View Secret Popup */}
+            {
+                viewedSecret && (
+                    <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50 p-4">
+
+                        <div className="bg-white w-full max-w-[560px] rounded-2xl p-6 shadow-xl">
+
+                            <div className="flex justify-between items-center gap-4">
+
+                                <h2 className="text-2xl font-bold text-gray-800">
+                                    {viewedSecret.title}
+                                </h2>
+
+                                <button
+                                    onClick={() => setViewedSecret(null)}
+                                    className="text-gray-500 hover:text-red-500 text-xl cursor-pointer"
+                                >
+                                    x
+                                </button>
+
+                            </div>
+
+                            <label className="block mt-5 text-sm font-medium text-gray-700">
+                                Decrypted Secret
+                            </label>
+
+                            <textarea
+                                readOnly
+                                value={viewedSecret.value}
+                                className="mt-2 w-full min-h-[140px] border border-gray-300 rounded-xl px-4 py-3 outline-none bg-gray-50 text-gray-900"
+                            />
+
+                            <button
+                                onClick={() => setViewedSecret(null)}
+                                className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all cursor-pointer"
+                            >
+                                Close
+                            </button>
+
+                        </div>
+
+                    </div>
                 )
             }
 
@@ -125,32 +263,72 @@ export default function Secrets() {
 
                     {/* Dynamic Rows */}
                     {
-                        secrets.map((secret, index) => (
+                        loading && (
+                            <div className="p-6 text-sm text-gray-500">
+                                Loading secrets...
+                            </div>
+                        )
+                    }
+
+                    {
+                        error && (
+                            <div className="p-6 text-sm font-medium text-red-600">
+                                {error}
+                            </div>
+                        )
+                    }
+
+                    {
+                        !loading && !error && secrets.length === 0 && (
+                            <div className="p-6 text-sm text-gray-500">
+                                No secrets stored yet.
+                            </div>
+                        )
+                    }
+
+                    {
+                        !loading && !error && secrets.map((secret) => (
 
                             <div
-                                key={index}
+                                key={secret._id || secret.id}
                                 className="grid grid-cols-4 items-center border-b border-gray-200 hover:bg-gray-50 transition-all text-sm last:border-b-0 min-w-[700px]"
                             >
 
                                 <div className="p-4">
-                                    {secret.secretName}
+                                    {secret.title}
                                 </div>
 
                                 <div className="p-4">
-                                    {secret.status}
+                                    Active
                                 </div>
 
                                 <div className="p-4">
-                                    {secret.lastUpdated}
+                                    {
+                                        new Date(
+                                            secret.updatedAt || secret.createdAt
+                                        ).toLocaleString()
+                                    }
                                 </div>
 
                                 <div className="p-4 flex justify-center gap-3">
 
-                                    <button className="text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
-                                        Edit
+                                    <button
+                                        onClick={() => viewSecret(secret._id || secret.id)}
+                                        disabled={actionLoading === (secret._id || secret.id)}
+                                        className="text-blue-600 hover:text-blue-800 disabled:text-blue-300 font-medium cursor-pointer disabled:cursor-not-allowed"
+                                    >
+                                        {
+                                            actionLoading === (secret._id || secret.id)
+                                                ? "Loading"
+                                                : "View"
+                                        }
                                     </button>
 
-                                    <button className="text-red-500 hover:text-red-700 font-medium cursor-pointer">
+                                    <button
+                                        onClick={() => deleteSecret(secret._id || secret.id)}
+                                        disabled={actionLoading === (secret._id || secret.id)}
+                                        className="text-red-500 hover:text-red-700 disabled:text-red-300 font-medium cursor-pointer disabled:cursor-not-allowed"
+                                    >
                                         Delete
                                     </button>
 

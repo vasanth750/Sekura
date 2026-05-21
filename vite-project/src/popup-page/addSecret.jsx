@@ -1,11 +1,46 @@
     import { useState } from 'react';
     import { Eye, EyeOff } from 'lucide-react';
+    import api from '../api';
 
-    export default function AddSecret({ closePopup }) {
+    export default function AddSecret({ closePopup, onSecretCreated }) {
 
         const [secretName, setSecretName] = useState("");
         const [secretValue, setSecretValue] = useState("");
         const [showSecret, setShowSecret] = useState(false);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+
+        const saveSecret = async () => {
+            try {
+                setError("");
+
+                if (!secretName.trim() || !secretValue.trim()) {
+                    setError("Secret name and value are required");
+                    return;
+                }
+
+                setLoading(true);
+
+                const response = await api.post("/api/encrypted-secrets", {
+                    title: secretName,
+                    value: secretValue,
+                    type: "secret"
+                });
+
+                onSecretCreated(response.data.secret);
+                closePopup();
+            }
+
+            catch (error) {
+                setError(
+                    error.response?.data?.message || "Unable to save secret"
+                );
+            }
+
+            finally {
+                setLoading(false);
+            }
+        };
 
         return (
 
@@ -87,9 +122,22 @@
 
                     </div>
 
+                    {
+                        error && (
+                            <p className="mt-4 text-sm font-medium text-red-600">
+                                {error}
+                            </p>
+                        )
+                    }
+
                     {/* Save Button */}
-                    <button className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all cursor-pointer">
-                        Save Secret
+                    <button
+                        type="button"
+                        onClick={saveSecret}
+                        disabled={loading}
+                        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-3 rounded-xl font-semibold transition-all cursor-pointer disabled:cursor-not-allowed"
+                    >
+                        {loading ? "Saving..." : "Save Secret"}
                     </button>
 
                 </div>

@@ -10,6 +10,7 @@ import connectDB from './config/db.js';
 import transporter from './config/mail.js';
 
 import User from './user.js';
+import encryptedSecretsRouter from "./routes/encryptedSecrets.js";
 
 dotenv.config();
 
@@ -20,6 +21,12 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
+
+// ======================================
+// API ROUTES
+// ======================================
+
+app.use("/api/encrypted-secrets", encryptedSecretsRouter);
 
 // ======================================
 // OTP STORE
