@@ -107,7 +107,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/80 shadow-2xl shadow-black/20 backdrop-blur-2xl">
+    <header className="sticky top-0 z-20 w-full border-b border-white/10 bg-slate-950/80 shadow-2xl shadow-black/20 backdrop-blur-2xl">
       <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center px-3 py-3 sm:px-5 lg:min-h-20 lg:px-8">
         <div className="grid w-full grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-2 lg:hidden">
           <button type="button" onClick={() => setMobileMenuOpen(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-300/40 bg-cyan-300/15 text-cyan-50 shadow-lg shadow-cyan-500/15 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-cyan-200/70 hover:bg-cyan-300/25 hover:shadow-[0_0_22px_rgba(34,211,238,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300" aria-label="Open navigation">
