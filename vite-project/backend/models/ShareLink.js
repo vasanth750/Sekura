@@ -116,7 +116,8 @@ const shareLinkSchema = new mongoose.Schema(
   }
 );
 
-shareLinkSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+shareLinkSchema.index({ owner: 1, createdAt: -1 });
+shareLinkSchema.index({ owner: 1, expiresAt: 1 });
 
 const ShareLink = mongoose.model("ShareLink", shareLinkSchema);
 

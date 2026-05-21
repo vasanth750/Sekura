@@ -22,8 +22,8 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="relative z-0 w-full border-t border-white/10 bg-slate-950/90 px-0 py-0 text-slate-300 backdrop-blur-2xl sm:px-6 sm:py-0 lg:px-5">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/20 backdrop-blur-2xl md:flex-row md:items-center md:justify-between">
+    <footer className="relative w-full border-t border-white/10 bg-slate-950/90 px-4 py-5 text-slate-300 backdrop-blur-2xl sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full flex-col gap-5 border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/20 backdrop-blur-2xl md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-2xl shadow-cyan-500/20">
             <img

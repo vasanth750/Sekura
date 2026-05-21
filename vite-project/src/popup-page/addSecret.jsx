@@ -36,7 +36,7 @@ export default function AddSecret({ closePopup, onSecretCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm sm:items-center">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm sm:items-center">
       <div className="my-4 max-h-[calc(100vh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/95 p-6 shadow-2xl shadow-black/40">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">

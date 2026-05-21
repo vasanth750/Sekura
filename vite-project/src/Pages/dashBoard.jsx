@@ -6,6 +6,12 @@ import api from "../api";
 export default function Dashboard() {
   const navigate = useNavigate();
   const [secrets, setSecrets] = useState([]);
+  const [linkStats, setLinkStats] = useState({
+    totalLinks: 0,
+    activeLinks: 0,
+    expiringSoon: 0,
+    recentLinks: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -17,27 +23,37 @@ export default function Dashboard() {
       return;
     }
 
-    const fetchSecrets = async () => {
+    const fetchDashboard = async () => {
       try {
         setError("");
         setLoading(true);
 
-        const response = await api.get("/api/encrypted-secrets");
+        const [secretsResponse, linkStatsResponse] = await Promise.all([
+          api.get("/api/encrypted-secrets"),
+          api.get("/api/share-links/stats/summary"),
+        ]);
 
-        setSecrets(response.data.secrets || []);
+        setSecrets(secretsResponse.data.secrets || []);
+        setLinkStats({
+          totalLinks: linkStatsResponse.data.totalLinks || 0,
+          activeLinks: linkStatsResponse.data.activeLinks || 0,
+          expiringSoon: linkStatsResponse.data.expiringSoon || 0,
+          recentLinks: linkStatsResponse.data.recentLinks || [],
+        });
       } catch (error) {
         setError(
-          error.response?.data?.message || "Unable to load dashboard secrets"
+          error.response?.data?.message || "Unable to load dashboard data"
         );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSecrets();
+    fetchDashboard();
   }, [navigate]);
 
   const recentSecrets = secrets.slice(0, 5);
+  const recentLinks = linkStats.recentLinks || [];
 
   const stats = [
     {
@@ -46,13 +62,18 @@ export default function Dashboard() {
       icon: KeyRound,
     },
     {
-      title: "Active Links",
-      value: "0",
+      title: "Created Links",
+      value: linkStats.totalLinks,
       icon: Link2,
     },
     {
+      title: "Active Links",
+      value: linkStats.activeLinks,
+      icon: ShieldCheck,
+    },
+    {
       title: "Expiring Soon",
-      value: "0",
+      value: linkStats.expiringSoon,
       icon: TimerReset,
     },
   ];
@@ -90,7 +111,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((item) => {
             const ItemIcon = item.icon;
 
@@ -180,6 +201,73 @@ export default function Dashboard() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
+          <div className="border-b border-white/10 p-5">
+            <h2 className="text-2xl font-black text-white">
+              Recent Links
+            </h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Links are active while unexpired and unopened.
+            </p>
+          </div>
+
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[760px]">
+              <div className="grid grid-cols-[3fr_1.5fr_2fr_1fr] gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
+                <p>Link Title</p>
+                <p>Status</p>
+                <p>Expires</p>
+                <p>Reads</p>
+              </div>
+
+              {loading && (
+                <div className="px-5 py-4 text-sm text-slate-400">
+                  Loading recent links...
+                </div>
+              )}
+
+              {!loading && !error && recentLinks.length === 0 && (
+                <div className="px-5 py-4 text-sm text-slate-400">
+                  No secure links created yet.
+                </div>
+              )}
+
+              {!loading && !error && recentLinks.map((link) => {
+                const isExpired = new Date(link.expiresAt) <= new Date();
+                const isOpened = link.readCount > 0;
+                const status = isExpired
+                  ? "Expired"
+                  : isOpened
+                    ? "Opened"
+                    : "Active";
+
+                return (
+                  <div
+                    key={link.token}
+                    className="grid grid-cols-[3fr_1.5fr_2fr_1fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                  >
+                    <p className="font-semibold text-white">
+                      {link.title}
+                    </p>
+
+                    <p className="font-semibold text-cyan-100">
+                      {status}
+                    </p>
+
+                    <p>
+                      {new Date(link.expiresAt).toLocaleString()}
+                    </p>
+
+                    <p>
+                      {link.readCount}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
