@@ -1,40 +1,49 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [secrets, setSecrets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
- useEffect(() => {
-  const token = sessionStorage.getItem("token");
+  useEffect(() => {
+    const token = sessionStorage.getItem("token");
 
-  console.log("TOKEN:", token);
-
-  if (!token) {
-    navigate("/login");
-    return;
-  }
-
-  api.get("/secrets")
-    .then((res) => {
-      console.log("SECRETS API:", res.data);
-    })
-    .catch((err) => {
-      console.log("SECRETS ERROR:", err);
-    });
-}, [navigate]);
-
-  const getSecrets = async () => {
-    try {
-      const response = await api.get("/secrets");
-      console.log(response.data);
-    } catch (error) {
-      console.log(error);
+    if (!token) {
+      navigate("/login");
+      return;
     }
-  };
+
+    const fetchSecrets = async () => {
+      try {
+        setError("");
+        setLoading(true);
+
+        const response = await api.get("/api/encrypted-secrets");
+
+        setSecrets(response.data.secrets || []);
+      }
+
+      catch (error) {
+        setError(
+          error.response?.data?.message || "Unable to load dashboard secrets"
+        );
+      }
+
+      finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSecrets();
+  }, [navigate]);
+
+  const recentSecrets = secrets.slice(0, 5);
 
   const stats = [
-    { title: "Total Secrets", value: "0" },
+    { title: "Total Secrets", value: secrets.length },
     { title: "Active Links", value: "0" },
     { title: "Expiring Soon", value: "0" },
   ];
@@ -94,28 +103,66 @@ export default function Dashboard() {
           <div className="min-w-[650px]">
             <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 bg-blue-600 px-5 py-3 text-sm text-white font-bold">
               <p>Secret Name</p>
-              <p>Environment</p>
-              <p>Last Accessed</p>
+              <p>Type</p>
+              <p>Last Updated</p>
               <p>Actions</p>
             </div>
 
-            <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center px-5 py-4 border-b">
-              <p className="font-semibold text-gray-800">
-                API_KEY
-              </p>
-              <p>Production</p>
-              <p>2 hours ago</p>
-              <p>-</p>
-            </div>
+            {
+              loading && (
+                <div className="px-5 py-4 text-sm text-gray-500">
+                  Loading recent secrets...
+                </div>
+              )
+            }
 
-            <div className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center px-5 py-4">
-              <p className="font-semibold text-gray-800">
-                DB_PASSWORD
-              </p>
-              <p>Development</p>
-              <p>Yesterday</p>
-              <p>-</p>
-            </div>
+            {
+              error && (
+                <div className="px-5 py-4 text-sm font-medium text-red-600">
+                  {error}
+                </div>
+              )
+            }
+
+            {
+              !loading && !error && recentSecrets.length === 0 && (
+                <div className="px-5 py-4 text-sm text-gray-500">
+                  No secrets stored yet.
+                </div>
+              )
+            }
+
+            {
+              !loading && !error && recentSecrets.map((secret) => (
+                <div
+                  key={secret._id || secret.id}
+                  className="grid grid-cols-[3fr_2fr_2fr_1fr] gap-4 items-center px-5 py-4 border-b last:border-b-0"
+                >
+                  <p className="font-semibold text-gray-800">
+                    {secret.title}
+                  </p>
+
+                  <p className="capitalize">
+                    {secret.type}
+                  </p>
+
+                  <p>
+                    {
+                      new Date(
+                        secret.updatedAt || secret.createdAt
+                      ).toLocaleString()
+                    }
+                  </p>
+
+                  <button
+                    onClick={() => navigate("/secrets")}
+                    className="text-left text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+                  >
+                    View
+                  </button>
+                </div>
+              ))
+            }
           </div>
         </div>
       </div>
