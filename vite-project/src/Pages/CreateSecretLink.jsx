@@ -6,7 +6,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { z } from "zod";
 import {
   AlertTriangle,
-  Check,
   CheckCircle2,
   Copy,
   Eye,
@@ -60,24 +59,6 @@ const defaultValues = {
   password: "",
   burnAfterReading: true,
 };
-
-const processSteps = [
-  {
-    title: "Encrypt Secret Locally",
-    description: "AES-GCM is prepared in your browser.",
-    icon: LockKeyhole,
-  },
-  {
-    title: "Generate Secure Key",
-    description: "A random key is created client-side.",
-    icon: KeyRound,
-  },
-  {
-    title: "Create Shareable Link",
-    description: "The key stays in the URL fragment.",
-    icon: Link2,
-  },
-];
 
 const particles = Array.from({ length: 22 }, (_, index) => ({
   left: `${(index * 29 + 7) % 100}%`,
@@ -208,47 +189,6 @@ function FieldError({ id, message }) {
     <p id={id} className="mt-2 text-sm font-medium text-red-300" role="alert">
       {message}
     </p>
-  );
-}
-
-function ProcessTimeline({ activeStep, completed }) {
-  return (
-    <div className="grid gap-3 md:grid-cols-3">
-      {processSteps.map((step, index) => {
-        const StepIcon = step.icon;
-        const isDone = completed || index < activeStep;
-        const isActive = !completed && index === activeStep;
-
-        return (
-          <motion.div
-            key={step.title}
-            animate={{
-              borderColor: isActive || isDone ? "rgba(34,211,238,0.55)" : "rgba(255,255,255,0.1)",
-              backgroundColor: isActive || isDone ? "rgba(8,145,178,0.16)" : "rgba(15,23,42,0.45)",
-            }}
-            className="rounded-xl border p-4"
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-200">
-                {isDone ? (
-                  <Check className="h-5 w-5" aria-hidden="true" />
-                ) : isActive ? (
-                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-                ) : (
-                  <StepIcon className="h-5 w-5" aria-hidden="true" />
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">{step.title}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-400">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
   );
 }
 
@@ -428,7 +368,6 @@ function RecentSecretsPanel({
 export default function CreateSecretLinkPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [generatedLink, setGeneratedLink] = useState("");
-  const [activeStep, setActiveStep] = useState(0);
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [toast, setToast] = useState(null);
   const [recentSecrets, setRecentSecrets] = useState([]);
@@ -504,7 +443,6 @@ export default function CreateSecretLinkPage() {
     try {
       setLoadingSecretId(secretId);
       setGeneratedLink("");
-      setActiveStep(0);
 
       const response = await api.get(`/api/encrypted-secrets/${secretId}/decrypt`);
       const decryptedSecret = response.data.secret;
@@ -535,14 +473,8 @@ export default function CreateSecretLinkPage() {
       setGeneratedLink("");
       setIsEncrypting(true);
 
-      for (let step = 0; step < processSteps.length; step += 1) {
-        setActiveStep(step);
-        await new Promise((resolve) => window.setTimeout(resolve, 420));
-      }
-
       const link = await createEncryptedShare(values);
       setGeneratedLink(link);
-      setActiveStep(processSteps.length);
       showToast("success", "Secure link generated.");
     } catch (error) {
       showToast(
@@ -570,7 +502,6 @@ export default function CreateSecretLinkPage() {
   const handleClear = () => {
     reset(defaultValues);
     setGeneratedLink("");
-    setActiveStep(0);
     setSelectedSecretId("");
     setSelectedSecretTitle("");
     showToast("success", "Form cleared.");
@@ -780,19 +711,6 @@ export default function CreateSecretLinkPage() {
                       {burnAfterReading ? "Auto-destroy enabled" : "Reusable until expiration"}
                     </p>
                   </div>
-                </div>
-
-                <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.06] p-4">
-                  <div className="mb-4 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-cyan-200" aria-hidden="true" />
-                    <h2 className="text-base font-bold text-white">
-                      Encryption Flow
-                    </h2>
-                  </div>
-                  <ProcessTimeline
-                    activeStep={activeStep}
-                    completed={Boolean(generatedLink)}
-                  />
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
