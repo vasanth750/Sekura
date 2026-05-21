@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 
 import auth from "../middleware/auth.js";
 import EncryptedSecret from "../models/EncryptedSecret.js";
@@ -8,6 +9,7 @@ import {
 } from "../utils/encryption.js";
 
 const router = express.Router();
+const allowedSecretTypes = ["secret", "note", "message", "file"];
 
 // ======================================
 // CREATE ENCRYPTED SECRET
@@ -32,6 +34,12 @@ router.post("/", auth, async (req, res) => {
         if (!value || typeof value !== "string") {
             return res.status(400).json({
                 message: "Value is required for encryption"
+            });
+        }
+
+        if (!allowedSecretTypes.includes(type)) {
+            return res.status(400).json({
+                message: "Invalid secret type"
             });
         }
 
@@ -108,6 +116,12 @@ router.get("/", auth, async (req, res) => {
 
 router.get("/:id/decrypt", auth, async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid secret id"
+            });
+        }
+
         const secret = await EncryptedSecret.findOne({
             _id: req.params.id,
             owner: req.user.id
@@ -154,6 +168,12 @@ router.get("/:id/decrypt", auth, async (req, res) => {
 
 router.delete("/:id", auth, async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                message: "Invalid secret id"
+            });
+        }
+
         const secret = await EncryptedSecret.findOneAndDelete({
             _id: req.params.id,
             owner: req.user.id

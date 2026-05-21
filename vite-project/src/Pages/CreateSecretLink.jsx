@@ -38,6 +38,16 @@ const expirationOptions = [
   { value: "one-time", label: "One Time View" },
 ];
 
+const expirationDurations = {
+  "5-minutes": 5 * 60 * 1000,
+  "1-hour": 60 * 60 * 1000,
+  "24-hours": 24 * 60 * 60 * 1000,
+  "7-days": 7 * 24 * 60 * 60 * 1000,
+  "one-time": 24 * 60 * 60 * 1000,
+};
+
+const passwordKdfIterations = 210000;
+
 const formSchema = z.object({
   secretName: z
     .string()
@@ -84,16 +94,84 @@ function createRandomBytes(length) {
   return bytes;
 }
 
+function getExpirationDate(expiration) {
+  const duration = expirationDurations[expiration] || expirationDurations["1-hour"];
+
+  return new Date(Date.now() + duration);
+}
+
+async function derivePasswordKey(password, salt, iterations) {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256
+  );
+
+  return new Uint8Array(derivedBits);
+}
+
+async function createEncryptionKeyBytes(linkKeyBytes, password, passwordKdf) {
+  if (!password) {
+    return linkKeyBytes;
+  }
+
+  const passwordKeyBytes = await derivePasswordKey(
+    password,
+    passwordKdf.saltBytes,
+    passwordKdf.iterations
+  );
+  const combinedKeyMaterial = new Uint8Array(
+    linkKeyBytes.length + passwordKeyBytes.length
+  );
+
+  combinedKeyMaterial.set(linkKeyBytes);
+  combinedKeyMaterial.set(passwordKeyBytes, linkKeyBytes.length);
+
+  const combinedDigest = await crypto.subtle.digest(
+    "SHA-256",
+    combinedKeyMaterial
+  );
+
+  return new Uint8Array(combinedDigest);
+}
+
 async function createEncryptedShare(values) {
   if (!window.crypto?.subtle) {
     throw new Error("Web Crypto is not available in this browser.");
   }
 
-  const keyBytes = createRandomBytes(32);
+  const linkKeyBytes = createRandomBytes(32);
   const iv = createRandomBytes(12);
+  const password = values.password?.trim();
+  const passwordProtected = Boolean(password);
+  const passwordKdf = passwordProtected
+    ? {
+        algorithm: "PBKDF2-SHA-256",
+        saltBytes: createRandomBytes(16),
+        iterations: passwordKdfIterations,
+      }
+    : null;
+  const encryptionKeyBytes = await createEncryptionKeyBytes(
+    linkKeyBytes,
+    password,
+    passwordKdf
+  );
   const key = await crypto.subtle.importKey(
     "raw",
-    keyBytes,
+    encryptionKeyBytes,
     { name: "AES-GCM" },
     false,
     ["encrypt"]
@@ -104,8 +182,9 @@ async function createEncryptedShare(values) {
       title: values.secretName,
       message: values.message,
       expiration: values.expiration,
-      passwordProtected: Boolean(values.password),
-      burnAfterReading: values.burnAfterReading,
+      passwordProtected,
+      burnAfterReading:
+        values.burnAfterReading || values.expiration === "one-time",
       createdAt: new Date().toISOString(),
     })
   );
@@ -114,12 +193,27 @@ async function createEncryptedShare(values) {
     key,
     payload
   );
-  const digest = await crypto.subtle.digest("SHA-256", ciphertext);
-  const secretId = bytesToBase64Url(new Uint8Array(digest)).slice(0, 24);
-  const shareKey = bytesToBase64Url(keyBytes);
-  const ivToken = bytesToBase64Url(iv);
 
-  return `${window.location.origin}/request/${secretId}?iv=${ivToken}#key=${shareKey}`;
+  return {
+    encryptedPayload: {
+      algorithm: "AES-GCM",
+      iv: bytesToBase64Url(iv),
+      ciphertext: bytesToBase64Url(new Uint8Array(ciphertext)),
+      encoding: "base64url",
+    },
+    expiresAt: getExpirationDate(values.expiration).toISOString(),
+    burnAfterReading:
+      values.burnAfterReading || values.expiration === "one-time",
+    passwordProtected,
+    passwordKdf: passwordKdf
+      ? {
+          algorithm: passwordKdf.algorithm,
+          salt: bytesToBase64Url(passwordKdf.saltBytes),
+          iterations: passwordKdf.iterations,
+        }
+      : undefined,
+    shareKey: bytesToBase64Url(linkKeyBytes),
+  };
 }
 
 function Toast({ toast, onDone }) {
@@ -473,7 +567,17 @@ export default function CreateSecretLinkPage() {
       setGeneratedLink("");
       setIsEncrypting(true);
 
-      const link = await createEncryptedShare(values);
+      const encryptedShare = await createEncryptedShare(values);
+      const response = await api.post("/api/share-links", {
+        title: values.secretName,
+        encryptedPayload: encryptedShare.encryptedPayload,
+        expiresAt: encryptedShare.expiresAt,
+        burnAfterReading: encryptedShare.burnAfterReading,
+        passwordProtected: encryptedShare.passwordProtected,
+        passwordKdf: encryptedShare.passwordKdf,
+      });
+      const link = `${window.location.origin}/request/${response.data.link.id}#key=${encryptedShare.shareKey}`;
+
       setGeneratedLink(link);
       showToast("success", "Secure link generated.");
     } catch (error) {
@@ -550,7 +654,7 @@ export default function CreateSecretLinkPage() {
             Sekura Secret Link
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-            Share secrets securely with end-to-end encryption. Nothing is stored permanently.
+            Share secrets securely with end-to-end encryption. The server stores ciphertext only.
           </p>
         </motion.div>
 

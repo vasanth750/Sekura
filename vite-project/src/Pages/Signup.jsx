@@ -1,8 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ShieldCheck, UserRound } from "lucide-react";
 import img from "../assets/SekuraLogo.png";
+import api from "../api";
 
 function Signup() {
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ function Signup() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:5000/send-otp", {
+      await api.post("/send-otp", {
         Email: email,
       });
 
@@ -61,7 +61,7 @@ function Signup() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:5000/verify-otp", {
+      await api.post("/verify-otp", {
         Email: email,
         OTP: otp,
       });
@@ -86,7 +86,7 @@ function Signup() {
     setRePasswordError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/newUser", {
+      const response = await api.post("/newUser", {
         Name: name,
         Email: email,
         Password: password,

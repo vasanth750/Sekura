@@ -7,8 +7,8 @@ import {
 
 import Signup from "./Pages/Signup.jsx";
 import Login from "./Pages/Login.jsx";
-import Footer from "./components/footer/Footer.jsx";
-import Header from "./components/header/Header.jsx";
+import Footer from "./components/footer/footer.jsx";
+import Header from "./components/header/header.jsx";
 import Secrets from "./Pages/Secrets.jsx";
 import CreateRequest from "./Pages/Request.jsx";
 import RequestViewr from "./Pages/RequestViewing.jsx";

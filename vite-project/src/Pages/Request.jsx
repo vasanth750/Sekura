@@ -1,16 +1,36 @@
 import { useState } from "react";
-import { CheckCircle2, Copy, Link2, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Copy, Link2, Loader2, ShieldCheck } from "lucide-react";
+import api from "../api";
 
 export default function CreateRequestPage() {
   const [requestName, setRequestName] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleGenerateLink = () => {
-    const uniqueId = Math.random().toString(36).substring(2, 10);
-    const link = `${window.location.origin}/request/${uniqueId}`;
+  const handleGenerateLink = async () => {
+    try {
+      setCreating(true);
+      setError("");
+      setGeneratedLink("");
 
-    setGeneratedLink(link);
+      const response = await api.post("/api/secret-requests", {
+        title: requestName,
+      });
+      const params = new URLSearchParams({
+        type: "collect",
+      });
+      const link = `${window.location.origin}/request/${response.data.request.id}?${params.toString()}`;
+
+      setGeneratedLink(link);
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.message || "Unable to generate request link."
+      );
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleCopy = async () => {
@@ -64,17 +84,26 @@ export default function CreateRequestPage() {
                 value={requestName}
                 onChange={(e) => {
                   setRequestName(e.target.value);
+                  setError("");
                 }}
                 className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-5 py-4 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25"
               />
             </div>
 
+            {error && (
+              <div className="flex items-start gap-3 rounded-xl border border-red-300/25 bg-red-500/10 p-4 text-red-100">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                <p className="text-sm font-semibold">{error}</p>
+              </div>
+            )}
+
             <button
               onClick={handleGenerateLink}
-              disabled={!requestName}
-              className="w-full rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 py-4 text-lg font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!requestName.trim() || creating}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 py-4 text-lg font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Generate Request Link
+              {creating && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
+              {creating ? "Generating..." : "Generate Request Link"}
             </button>
 
             {generatedLink && (

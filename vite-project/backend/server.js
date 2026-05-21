@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 import auth from "./middleware/auth.js";
 
@@ -11,6 +12,8 @@ import transporter from './config/mail.js';
 
 import User from './user.js';
 import encryptedSecretsRouter from "./routes/encryptedSecrets.js";
+import secretRequestsRouter from "./routes/secretRequests.js";
+import shareLinksRouter from "./routes/shareLinks.js";
 
 dotenv.config();
 
@@ -18,21 +21,52 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+const corsOrigins = process.env.CLIENT_ORIGIN
+    ? process.env.CLIENT_ORIGIN.split(",").map((origin) => origin.trim())
+    : true;
 
-app.use(express.json());
+app.use(cors({
+    origin: corsOrigins
+}));
+
+app.use(express.json({
+    limit: "256kb"
+}));
 
 // ======================================
 // API ROUTES
 // ======================================
 
 app.use("/api/encrypted-secrets", encryptedSecretsRouter);
+app.use("/api/secret-requests", secretRequestsRouter);
+app.use("/api/share-links", shareLinksRouter);
 
 // ======================================
 // OTP STORE
 // ======================================
 
-const otpStore = {};
+const otpStore = new Map();
+
+function normalizeEmail(email) {
+    return typeof email === "string" ? email.trim().toLowerCase() : "";
+}
+
+function hashOtp(email, otp) {
+    return crypto
+        .createHash("sha256")
+        .update(`${email}:${otp}:${process.env.JWT_SECRET}`)
+        .digest("hex");
+}
+
+function secureCompareHash(left, right) {
+    const leftBuffer = Buffer.from(left);
+    const rightBuffer = Buffer.from(right);
+
+    return (
+        leftBuffer.length === rightBuffer.length &&
+        crypto.timingSafeEqual(leftBuffer, rightBuffer)
+    );
+}
 
 // ======================================
 // HOME ROUTE
@@ -53,9 +87,9 @@ app.post("/send-otp", async (req, res) => {
     try {
 
         const {
-            
             Email
         } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
 
 
         // =========================
@@ -65,7 +99,7 @@ app.post("/send-otp", async (req, res) => {
         const emailPattern =
             /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!emailPattern.test(Email)) {
+        if (!emailPattern.test(normalizedEmail)) {
 
             return res.status(400).json({
 
@@ -85,7 +119,7 @@ app.post("/send-otp", async (req, res) => {
         const existingUser =
             await User.findOne({
 
-                email: Email
+                email: normalizedEmail
 
             });
 
@@ -105,26 +139,24 @@ app.post("/send-otp", async (req, res) => {
         // =========================
 
         const verificationCode =
-            Math.floor(
-
-                100000 + Math.random() * 900000
-
-            ).toString();
+            crypto.randomInt(100000, 1000000).toString();
 
         // =========================
         // STORE OTP
         // =========================
 
-        otpStore[Email] = {
+        otpStore.set(normalizedEmail, {
 
-            otp: verificationCode,
+            otpHash: hashOtp(normalizedEmail, verificationCode),
 
             expires:
                 Date.now() + 5 * 60 * 1000,
 
-            verified: false
+            verified: false,
 
-        };
+            attempts: 0
+
+        });
 
         // =========================
         // SEND EMAIL
@@ -135,7 +167,7 @@ app.post("/send-otp", async (req, res) => {
             from:
                 `"Sekura" <${process.env.EMAIL_USER}>`,
 
-            to: Email,
+            to: normalizedEmail,
 
             replyTo:
                 process.env.EMAIL_USER,
@@ -201,12 +233,14 @@ app.post("/verify-otp", async (req, res) => {
             Email,
             OTP
         } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
+        const otpEntry = otpStore.get(normalizedEmail);
 
         // =========================
         // OTP EXIST?
         // =========================
 
-        if (!otpStore[Email]) {
+        if (!otpEntry) {
 
             return res.status(400).json({
 
@@ -222,9 +256,10 @@ app.post("/verify-otp", async (req, res) => {
         // =========================
 
         if (
-            otpStore[Email].expires
+            otpEntry.expires
             < Date.now()
         ) {
+            otpStore.delete(normalizedEmail);
 
             return res.status(400).json({
 
@@ -239,9 +274,22 @@ app.post("/verify-otp", async (req, res) => {
         // OTP VALIDATION
         // =========================
 
-        if (
-            otpStore[Email].otp !== OTP
-        ) {
+        if (otpEntry.attempts >= 5) {
+            otpStore.delete(normalizedEmail);
+
+            return res.status(429).json({
+
+                message:
+                    "Too many OTP attempts. Request a new code"
+
+            });
+
+        }
+
+        const otpHash = hashOtp(normalizedEmail, String(OTP || ""));
+
+        if (!secureCompareHash(otpEntry.otpHash, otpHash)) {
+            otpEntry.attempts += 1;
 
             return res.status(400).json({
 
@@ -256,7 +304,7 @@ app.post("/verify-otp", async (req, res) => {
         // VERIFIED
         // =========================
 
-        otpStore[Email].verified = true;
+        otpEntry.verified = true;
 
         res.status(200).json({
 
@@ -296,14 +344,16 @@ app.post("/newUser", async (req, res) => {
             Password,
             RePassword
         } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
+        const otpEntry = otpStore.get(normalizedEmail);
 
         // =========================
         // EMAIL VERIFIED?
         // =========================
 
         if (
-            !otpStore[Email] ||
-            !otpStore[Email].verified
+            !otpEntry ||
+            !otpEntry.verified
         ) {
 
             return res.status(401).json({
@@ -383,7 +433,7 @@ app.post("/newUser", async (req, res) => {
 
             name: Name,
 
-            email: Email,
+            email: normalizedEmail,
 
             password: hashedPassword,
 
@@ -397,7 +447,7 @@ app.post("/newUser", async (req, res) => {
         // REMOVE OTP
         // =========================
 
-        delete otpStore[Email];
+        otpStore.delete(normalizedEmail);
 
         // =========================
         // GENERATE JWT
@@ -466,6 +516,7 @@ app.post("/login", async (req, res) => {
             Email,
             Password
         } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
 
         // =========================
         // FIND USER
@@ -474,7 +525,7 @@ app.post("/login", async (req, res) => {
         const userValidation =
             await User.findOne({
 
-                email: Email
+                email: normalizedEmail
 
             });
 
