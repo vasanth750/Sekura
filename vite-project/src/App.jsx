@@ -12,6 +12,7 @@ import Header from "./components/header/Header.jsx";
 import Secrets from "./Pages/Secrets.jsx";
 import CreateRequest from "./Pages/Request.jsx";
 import RequestViewr from "./Pages/RequestViewing.jsx";
+import CreateSecretLinkPage from "./Pages/CreateSecretLink.jsx";
 
 import Privacy from "./components/footer/Privacy.jsx";
 import Terms from "./components/footer/Terms.jsx";
@@ -31,13 +32,14 @@ function ProtectedRoute({ children }) {
 function Layout() {
   const location = useLocation();
 
-  const hideHeaderFooterRoutes = ["/login", "/signup"];
+  const hideHeaderRoutes = ["/login", "/signup"];
+  const hideFooterRoutes = ["/login", "/signup"];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {!hideHeaderFooterRoutes.includes(location.pathname) && <Header />}
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-950 text-slate-100">
+      {!hideHeaderRoutes.includes(location.pathname) && <Header />}
 
-      <main className="flex-1">
+      <main className="flex-1 overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -72,6 +74,15 @@ function Layout() {
             }
           />
 
+          <Route
+            path="/create-link"
+            element={
+              <ProtectedRoute>
+                <CreateSecretLinkPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/request/:id" element={<RequestViewr />} />
 
           <Route path="/privacy-policy" element={<Privacy />} />
@@ -82,7 +93,7 @@ function Layout() {
         </Routes>
       </main>
 
-      {!hideHeaderFooterRoutes.includes(location.pathname) && <Footer />}
+      {!hideFooterRoutes.includes(location.pathname) && <Footer />}
     </div>
   );
 }

@@ -1,4 +1,46 @@
 @import "tailwindcss";
 html {
   overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+body {
+  background: #020617;
+  color-scheme: dark;
+  overflow-x: hidden;
+}
+
+#root {
+  overflow-x: hidden;
+}
+
+@keyframes sekuraBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sekuraSidebarSlide {
+  from {
+    opacity: 0.72;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sekuraMobileDrawerSlide {
+  from {
+    opacity: 0.72;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
