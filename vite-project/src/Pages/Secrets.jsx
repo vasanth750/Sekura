@@ -241,19 +241,18 @@ export default function Secrets() {
         <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
           <div className="border-b border-white/10 p-6">
             <h2 className="text-xl font-black text-white">
-              Credentials Registry
+              Your Secrets
             </h2>
 
             <p className="mt-1 text-sm text-slate-400">
-              Displaying active secrets in your workspace.
+              Displaying the most recently added secrets in your workspace.
             </p>
           </div>
 
           <div className="overflow-x-auto">
-            <div className="grid min-w-[760px] grid-cols-4 border-b border-cyan-300/20 bg-cyan-300/10 text-sm font-bold text-cyan-100">
+            <div className="grid min-w-[680px] grid-cols-[2fr_1.4fr_1.2fr] border-b border-cyan-300/20 bg-cyan-300/10 text-sm font-bold text-cyan-100">
               <div className="p-4">Secret Name</div>
-              <div className="p-4">Status</div>
-              <div className="p-4">Last Updated</div>
+              <div className="p-4">Added</div>
               <div className="p-4 text-center">Actions</div>
             </div>
 
@@ -281,7 +280,7 @@ export default function Secrets() {
               return (
                 <div
                   key={secretId}
-                  className="grid min-w-[760px] grid-cols-4 items-center border-b border-white/10 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                  className="grid min-w-[680px] grid-cols-[2fr_1.4fr_1.2fr] items-center border-b border-white/10 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
                 >
                   <div className="flex items-center gap-3 p-4 font-semibold text-white">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
@@ -291,15 +290,7 @@ export default function Secrets() {
                   </div>
 
                   <div className="p-4">
-                    <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-bold text-emerald-200">
-                      Active
-                    </span>
-                  </div>
-
-                  <div className="p-4">
-                    {new Date(
-                      secret.updatedAt || secret.createdAt
-                    ).toLocaleString()}
+                    {new Date(secret.createdAt).toLocaleString()}
                   </div>
 
                   <div className="flex justify-center gap-3 p-4">

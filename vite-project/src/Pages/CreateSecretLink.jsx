@@ -368,7 +368,7 @@ function RecentSecretsPanel({
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">
-            Recent Secrets
+            Search Secrets
           </h2>
           <p className="text-sm text-slate-400">
             Pick a saved secret to prepare a link.
@@ -384,16 +384,16 @@ function RecentSecretsPanel({
         <Input
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
-          placeholder="Search recent secrets..."
+          placeholder="Search your secrets..."
           className="pl-11"
-          aria-label="Search recent secrets"
+          aria-label="Search your secrets"
         />
       </div>
 
       <div className="mt-5 space-y-3">
         {loadingSecrets && (
           <div className="rounded-xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-400">
-            Loading recent secrets...
+            Loading your secrets...
           </div>
         )}
 
@@ -508,7 +508,7 @@ export default function CreateSecretLinkPage() {
       } catch (error) {
         if (isMounted) {
           setSecretsError(
-            error.response?.data?.message || "Unable to load recent secrets."
+            error.response?.data?.message || "Unable to load your secrets."
           );
         }
       } finally {

@@ -8,8 +8,8 @@ import { cn } from "../../lib/utils";
 const navLinks = [
   { name: "Dashboard", path: "/dashboard", icon: ShieldCheck },
   { name: "Secrets", path: "/secrets", icon: KeyRound },
-  { name: "Request", path: "/request", icon: Inbox },
   { name: "Create Link", path: "/create-link", icon: Link2 },
+  { name: "Request", path: "/request", icon: Inbox },
 ];
 
 function Brand({ compact = false }) {

@@ -93,6 +93,13 @@ export default function RequestPage() {
   const [loading, setLoading] = useState(true);
   const [decrypting, setDecrypting] = useState(false);
   const [error, setError] = useState("");
+  const [linkExpired, setLinkExpired] = useState(false);
+
+  const expireVisibleSecret = () => {
+    setSecret(null);
+    setLinkExpired(true);
+    setError("This secret link has expired");
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -101,6 +108,7 @@ export default function RequestPage() {
       try {
         setLoading(true);
         setError("");
+        setLinkExpired(false);
 
         const shareKey = getFragmentKey();
         const searchParams = new URLSearchParams(window.location.search);
@@ -123,6 +131,11 @@ export default function RequestPage() {
 
         const response = await api.get(`/api/share-links/${id}`);
         const loadedLink = response.data.link;
+        const expiryTime = new Date(loadedLink.expiresAt).getTime();
+
+        if (Number.isNaN(expiryTime) || expiryTime <= Date.now()) {
+          throw new Error("This secret link has expired");
+        }
 
         if (!isMounted) {
           return;
@@ -156,11 +169,30 @@ export default function RequestPage() {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (!linkData?.expiresAt || linkExpired) {
+      return undefined;
+    }
+
+    const millisecondsUntilExpiry = Math.max(
+      0,
+      new Date(linkData.expiresAt).getTime() - Date.now()
+    );
+    const timeoutId = window.setTimeout(expireVisibleSecret, millisecondsUntilExpiry);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [linkData?.expiresAt, linkExpired]);
+
   const unlockProtectedSecret = async (event) => {
     event.preventDefault();
 
     if (!password.trim()) {
       setError("Enter the password for this secure link.");
+      return;
+    }
+
+    if (linkExpired || (linkData?.expiresAt && new Date(linkData.expiresAt) <= new Date())) {
+      expireVisibleSecret();
       return;
     }
 
@@ -279,7 +311,7 @@ export default function RequestPage() {
             </div>
           )}
 
-          {!loading && linkData?.passwordProtected && !secret && (
+          {!loading && linkData?.passwordProtected && !secret && !linkExpired && (
             <form onSubmit={unlockProtectedSecret} className="space-y-5">
               <StatusCard icon={KeyRound} title="Password Required" text="This link needs both the URL key and the sender's password before it can decrypt." />
               <div>
@@ -298,7 +330,7 @@ export default function RequestPage() {
             </form>
           )}
 
-          {!loading && secret && (
+          {!loading && secret && !linkExpired && (
             <div className="space-y-5">
               <StatusCard icon={CheckCircle2} title="Secret Decrypted" text="The server sent encrypted data only. Your browser used the URL key to reveal it here." />
               <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-5">

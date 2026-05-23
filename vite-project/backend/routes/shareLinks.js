@@ -189,8 +189,7 @@ router.get("/stats/summary", auth, async (req, res) => {
         .select("title token expiresAt burnAfterReading passwordProtected readCount openedAt createdAt")
         .sort({
           createdAt: -1,
-        })
-        .limit(5),
+        }),
     ]);
 
     return res.status(200).json({
