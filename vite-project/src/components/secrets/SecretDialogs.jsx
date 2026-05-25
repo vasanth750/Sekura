@@ -23,7 +23,7 @@ export function SecretActionButtons({
         type="button"
         onClick={onView}
         disabled={disabled || isBusy}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-300/15 bg-cyan-300/10 text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-300/15 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-700 transition hover:border-green-300 hover:bg-green-100 hover:text-green-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300 dark:hover:bg-green-400/15"
         aria-label="View secret"
         title="View"
       >
@@ -33,7 +33,7 @@ export function SecretActionButtons({
         type="button"
         onClick={onEdit}
         disabled={disabled || isBusy}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.07] text-slate-200 transition hover:border-cyan-300/30 hover:bg-white/[0.12] hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300 dark:hover:bg-white/[0.12] dark:hover:text-white"
         aria-label="Edit secret"
         title="Edit"
       >
@@ -43,7 +43,7 @@ export function SecretActionButtons({
         type="button"
         onClick={onDelete}
         disabled={disabled || isBusy}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-300/15 bg-red-500/10 text-red-300 transition hover:border-red-300/35 hover:bg-red-500/15 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:border-red-300 hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15"
         aria-label="Delete secret"
         title="Delete"
       >
@@ -59,35 +59,35 @@ export function SecretViewerDialog({ onClose, secret }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-[560px] rounded-2xl border border-white/10 bg-slate-950/95 p-6 shadow-2xl shadow-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+      <div className="sekura-panel w-full max-w-[560px] rounded-xl p-6">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-black text-white">
+          <h2 className="sekura-heading text-2xl font-black">
             {secret.title}
           </h2>
 
           <button
             onClick={onClose}
-            className="rounded-xl border border-white/10 bg-white/[0.06] p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            className="sekura-secondary-btn rounded-lg p-2 transition"
             aria-label="Close decrypted secret"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <label className="mt-5 block text-sm font-semibold text-slate-200">
+        <label className="sekura-heading mt-5 block text-sm font-semibold">
           Decrypted Secret
         </label>
 
         <textarea
           readOnly
           value={secret.value}
-          className="mt-2 min-h-[140px] w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none"
+          className="sekura-input mt-2 min-h-[140px] w-full rounded-lg px-4 py-3 outline-none"
         />
 
         <button
           onClick={onClose}
-          className="mt-5 w-full rounded-xl bg-cyan-300 py-3 font-bold text-slate-950 transition hover:bg-cyan-200"
+          className="sekura-primary-btn mt-5 w-full rounded-lg py-3 font-bold transition"
         >
           Close
         </button>
@@ -102,19 +102,19 @@ export function DeleteSecretDialog({ loading, onCancel, onConfirm, secret }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
-      <div className="w-full max-w-md rounded-2xl border border-red-300/20 bg-slate-950 p-6 shadow-2xl shadow-red-950/30">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+      <div className="sekura-panel w-full max-w-md rounded-xl p-6">
         <div className="flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-300/25 bg-red-500/10 text-red-200">
             <AlertTriangle className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-xl font-black text-white">
+            <h2 className="sekura-heading text-xl font-black">
               Delete secret?
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
+            <p className="sekura-muted mt-2 text-sm leading-6">
               This will permanently delete{" "}
-              <span className="font-semibold text-slate-100">
+              <span className="sekura-heading font-semibold">
                 {secret.title}
               </span>
               .
@@ -127,7 +127,7 @@ export function DeleteSecretDialog({ loading, onCancel, onConfirm, secret }) {
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="min-h-11 rounded-xl border border-white/10 bg-white/[0.07] px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-60"
+            className="sekura-secondary-btn min-h-11 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
@@ -179,34 +179,34 @@ function EditSecretForm({
   const [value, setValue] = useState(secret.value || "");
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm sm:items-center">
-      <div className="my-4 max-h-[calc(100vh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/95 p-6 shadow-2xl shadow-black/40">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm sm:items-center">
+      <div className="sekura-panel my-4 max-h-[calc(100vh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-xl p-6">
         <div className="mb-6 flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-black text-white">
+          <h2 className="sekura-heading text-2xl font-black">
             Edit Secret
           </h2>
 
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-white/10 bg-white/[0.06] p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            className="sekura-secondary-btn rounded-lg p-2 transition"
             aria-label="Close edit secret"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <label className="text-sm font-semibold text-slate-200">
+        <label className="sekura-heading text-sm font-semibold">
           Secret Name
         </label>
         <input
           type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25"
+          className="sekura-input mt-2 w-full rounded-lg px-4 py-3 outline-none transition"
         />
 
-        <label className="mt-4 block text-sm font-semibold text-slate-200">
+        <label className="sekura-heading mt-4 block text-sm font-semibold">
           Secret
         </label>
         <textarea
@@ -214,7 +214,7 @@ function EditSecretForm({
           value={value}
           spellCheck={false}
           onChange={(event) => setValue(event.target.value)}
-          className="mt-2 min-h-48 w-full resize-y rounded-xl border border-white/10 bg-slate-950/50 px-4 py-4 font-mono text-sm leading-6 text-white outline-none transition focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25"
+          className="sekura-input mt-2 min-h-48 w-full resize-y rounded-lg px-4 py-4 font-mono text-sm leading-6 outline-none transition"
         />
 
         {error && (
@@ -228,7 +228,7 @@ function EditSecretForm({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="min-h-11 rounded-xl border border-white/10 bg-white/[0.07] px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-60"
+            className="sekura-secondary-btn min-h-11 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
@@ -236,7 +236,7 @@ function EditSecretForm({
             type="button"
             onClick={() => onSave({ title, value })}
             disabled={loading}
-            className="min-h-11 rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 px-4 py-2 text-sm font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+            className="sekura-primary-btn min-h-11 rounded-lg px-4 py-2 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>

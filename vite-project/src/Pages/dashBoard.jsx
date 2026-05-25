@@ -198,10 +198,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="relative isolate min-h-full overflow-hidden bg-slate-950 px-4 py-8 text-slate-100 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_16%_8%,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_84%_14%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#020617_0%,#0f172a_50%,#020617_100%)]" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-35" />
-
+    <div className="sekura-page min-h-full px-4 py-8 text-slate-950 dark:text-slate-100 sm:px-6 lg:px-8">
       <SecretViewerDialog
         onClose={() => setViewedSecret(null)}
         secret={viewedSecret}
@@ -226,18 +223,18 @@ export default function Dashboard() {
       />
 
       <div className="mx-auto w-full max-w-7xl">
-        <div className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/30 backdrop-blur-2xl md:flex-row md:items-center md:justify-between md:p-7">
+        <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between md:p-7 dark:border-white/10 dark:bg-slate-900">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+            <p className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-green-700 dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300">
               <ShieldCheck className="h-4 w-4" />
               Secure workspace
             </p>
 
-            <h1 className="mt-4 text-3xl font-black text-white md:text-5xl">
+            <h1 className="mt-4 text-3xl font-black text-slate-950 md:text-5xl dark:text-white">
               Welcome back
             </h1>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 md:text-base dark:text-slate-400">
               Monitor encrypted credentials, create short-lived links, and keep
               sensitive material moving through trusted paths.
             </p>
@@ -246,7 +243,7 @@ export default function Dashboard() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => navigate("/secrets")}
-              className="rounded-xl border border-white/10 bg-white/[0.08] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.12]"
+              className="rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-green-200 hover:bg-green-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
             >
               New Secret
             </button>
@@ -260,18 +257,18 @@ export default function Dashboard() {
             return (
               <div
                 key={item.title}
-                className="rounded-2xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/20 backdrop-blur-2xl transition hover:-translate-y-1 hover:border-cyan-300/25"
+                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-green-200 hover:shadow-md dark:border-white/10 dark:bg-slate-900 dark:hover:border-green-400/20"
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-slate-200">
+                  <h3 className="font-bold text-slate-900 dark:text-slate-200">
                     {item.title}
                   </h3>
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-green-50 text-green-700 dark:bg-green-400/10 dark:text-green-300">
                     <ItemIcon className="h-5 w-5" />
                   </span>
                 </div>
 
-                <h2 className="mt-5 text-4xl font-black text-white">
+                <h2 className="mt-5 text-4xl font-black text-slate-950 dark:text-white">
                   {item.value}
                 </h2>
               </div>
@@ -280,19 +277,19 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-6 grid items-stretch gap-6 lg:grid-cols-2">
-          <div className="flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
-            <div className="border-b border-white/10 p-5">
-              <h2 className="text-2xl font-black text-white">
+          <div className="flex min-h-[560px] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">
+            <div className="border-b border-slate-200 p-5 dark:border-white/10">
+              <h2 className="text-2xl font-black text-slate-950 dark:text-white">
                 Recent Secrets
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                 The 5 most recently added credentials in your workspace.
               </p>
             </div>
 
             <div className="flex-1 overflow-x-auto">
               <div className="flex h-full min-w-[620px] flex-col">
-                <div className="grid grid-cols-[1.4fr_1fr_1fr] items-center gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
+                <div className="grid grid-cols-[1.4fr_1fr_1fr] items-center gap-4 border-b border-green-200 bg-green-50 px-5 py-3 text-sm font-bold text-green-800 dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300">
                   <p>Secret Name</p>
                   <p className="text-center">Type</p>
                   <p className="text-center">Actions</p>
@@ -300,19 +297,19 @@ export default function Dashboard() {
 
                 <div className="min-h-[340px] flex-1">
                   {loading && (
-                    <div className="px-5 py-5 text-sm text-slate-400">
+                    <div className="px-5 py-5 text-sm text-slate-600 dark:text-slate-400">
                       Loading recent secrets...
                     </div>
                   )}
 
                   {error && (
-                    <div className="px-5 py-5 text-sm font-medium text-red-300">
+                    <div className="px-5 py-5 text-sm font-medium text-red-600 dark:text-red-300">
                       {error}
                     </div>
                   )}
 
                   {!loading && !error && pagedSecrets.length === 0 && (
-                    <div className="px-5 py-5 text-sm text-slate-400">
+                    <div className="px-5 py-5 text-sm text-slate-600 dark:text-slate-400">
                       No secrets stored yet.
                     </div>
                   )}
@@ -323,13 +320,13 @@ export default function Dashboard() {
                     return (
                       <div
                         key={secretId}
-                        className="grid min-h-[68px] grid-cols-[1.4fr_1fr_1fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                        className="grid min-h-[68px] grid-cols-[1.4fr_1fr_1fr] items-center gap-4 border-b border-slate-100 px-5 py-4 text-sm text-slate-600 transition last:border-b-0 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/[0.05]"
                       >
-                        <p className="truncate font-semibold text-white" title={secret.title}>
+                        <p className="truncate font-semibold text-slate-950 dark:text-white" title={secret.title}>
                           {secret.title}
                         </p>
 
-                        <p className="text-center text-slate-300">
+                        <p className="text-center text-slate-600 dark:text-slate-300">
                           {getSecretSourceLabel(secret)}
                         </p>
 
@@ -349,7 +346,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/10 px-5 py-4 text-sm text-slate-300">
+            <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4 text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
               <span>
                 Page {secretPage + 1} of {secretPageCount}
               </span>
@@ -358,7 +355,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setSecretPage((page) => Math.max(0, page - 1))}
                   disabled={secretPage === 0}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-green-700 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.06] dark:text-green-300 dark:hover:bg-white/10"
                   aria-label="Previous secrets page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -367,7 +364,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setSecretPage((page) => Math.min(secretPageCount - 1, page + 1))}
                   disabled={secretPage >= secretPageCount - 1}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-green-700 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.06] dark:text-green-300 dark:hover:bg-white/10"
                   aria-label="Next secrets page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -376,19 +373,19 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
-            <div className="border-b border-white/10 p-5">
-              <h2 className="text-2xl font-black text-white">
+          <div className="flex min-h-[560px] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-900">
+            <div className="border-b border-slate-200 p-5 dark:border-white/10">
+              <h2 className="text-2xl font-black text-slate-950 dark:text-white">
                 Recent Links
               </h2>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                 The 5 most recently created secure links.
               </p>
             </div>
 
             <div className="flex-1 overflow-x-auto">
               <div className="flex h-full min-w-[560px] flex-col">
-                <div className="grid grid-cols-[1.4fr_1fr_0.8fr] items-center gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
+                <div className="grid grid-cols-[1.4fr_1fr_0.8fr] items-center gap-4 border-b border-green-200 bg-green-50 px-5 py-3 text-sm font-bold text-green-800 dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300">
                   <p>Link Title</p>
                   <p className="text-center">Status</p>
                   <p className="text-center">Reads</p>
@@ -396,13 +393,13 @@ export default function Dashboard() {
 
                 <div className="min-h-[340px] flex-1">
                   {loading && (
-                    <div className="px-5 py-5 text-sm text-slate-400">
+                    <div className="px-5 py-5 text-sm text-slate-600 dark:text-slate-400">
                       Loading recent links...
                     </div>
                   )}
 
                   {!loading && !error && pagedLinks.length === 0 && (
-                    <div className="px-5 py-5 text-sm text-slate-400">
+                    <div className="px-5 py-5 text-sm text-slate-600 dark:text-slate-400">
                       No secure links created yet.
                     </div>
                   )}
@@ -414,13 +411,13 @@ export default function Dashboard() {
                     return (
                       <div
                         key={link.token}
-                        className="grid min-h-[68px] grid-cols-[1.4fr_1fr_0.8fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                        className="grid min-h-[68px] grid-cols-[1.4fr_1fr_0.8fr] items-center gap-4 border-b border-slate-100 px-5 py-4 text-sm text-slate-600 transition last:border-b-0 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/[0.05]"
                       >
-                        <p className="truncate font-semibold text-white" title={link.title}>
+                        <p className="truncate font-semibold text-slate-950 dark:text-white" title={link.title}>
                           {link.title}
                         </p>
 
-                        <p className={`text-center font-semibold ${isExpired ? "text-red-300" : "text-emerald-200"}`}>
+                        <p className={`text-center font-semibold ${isExpired ? "text-red-600 dark:text-red-300" : "text-green-700 dark:text-emerald-200"}`}>
                           {status}
                         </p>
 
@@ -434,7 +431,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/10 px-5 py-4 text-sm text-slate-300">
+            <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4 text-sm text-slate-600 dark:border-white/10 dark:text-slate-300">
               <span>
                 Page {linkPage + 1} of {linkPageCount}
               </span>
@@ -443,7 +440,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setLinkPage((page) => Math.max(0, page - 1))}
                   disabled={linkPage === 0}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-green-700 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.06] dark:text-green-300 dark:hover:bg-white/10"
                   aria-label="Previous links page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -452,7 +449,7 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => setLinkPage((page) => Math.min(linkPageCount - 1, page + 1))}
                   disabled={linkPage >= linkPageCount - 1}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-green-700 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.06] dark:text-green-300 dark:hover:bg-white/10"
                   aria-label="Next links page"
                 >
                   <ChevronRight className="h-4 w-4" />

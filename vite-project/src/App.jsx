@@ -4,6 +4,7 @@ import {
   useLocation,
   Navigate,
 } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 import Signup from "./Pages/Signup.jsx";
 import Login from "./Pages/Login.jsx";
@@ -36,61 +37,72 @@ function Layout() {
   const hideFooterRoutes = ["/login", "/signup"];
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-950 text-slate-100">
+    <div className="sekura-app-shell flex min-h-screen flex-col overflow-x-hidden text-slate-950 dark:text-slate-100">
       {!hideHeaderRoutes.includes(location.pathname) && <Header />}
 
       <main className="relative z-10 flex-1 overflow-x-hidden">
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
+            className="min-h-full"
+          >
+            <Routes location={location}>
+              <Route path="/" element={<Navigate to="/login" replace />} />
 
-          <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<Login />} />
 
-          <Route path="/signup" element={<Signup />} />
+              <Route path="/signup" element={<Signup />} />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/secrets"
-            element={
-              <ProtectedRoute>
-                <Secrets />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/secrets"
+                element={
+                  <ProtectedRoute>
+                    <Secrets />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/request"
-            element={
-              <ProtectedRoute>
-                <CreateRequest />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/request"
+                element={
+                  <ProtectedRoute>
+                    <CreateRequest />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route
-            path="/create-link"
-            element={
-              <ProtectedRoute>
-                <CreateSecretLinkPage />
-              </ProtectedRoute>
-            }
-          />
+              <Route
+                path="/create-link"
+                element={
+                  <ProtectedRoute>
+                    <CreateSecretLinkPage />
+                  </ProtectedRoute>
+                }
+              />
 
-          <Route path="/request/:id" element={<RequestViewr />} />
+              <Route path="/request/:id" element={<RequestViewr />} />
 
-          <Route path="/privacy-policy" element={<Privacy />} />
+              <Route path="/privacy-policy" element={<Privacy />} />
 
-          <Route path="/terms-condition" element={<Terms />} />
+              <Route path="/terms-condition" element={<Terms />} />
 
-          <Route path="/contact-us" element={<Contact />} />
-        </Routes>
+              <Route path="/contact-us" element={<Contact />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {!hideFooterRoutes.includes(location.pathname) && (

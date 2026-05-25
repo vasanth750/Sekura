@@ -250,7 +250,7 @@ function Toast({ toast, onDone }) {
 function QrPreview({ value }) {
   return (
     <div
-      className="mx-auto flex h-44 w-44 items-center justify-center rounded-xl border border-cyan-300/20 bg-white p-3 shadow-xl shadow-cyan-500/10"
+      className="mx-auto flex h-44 w-44 items-center justify-center rounded-xl border border-green-300/20 bg-white p-3 shadow-xl shadow-green-500/10"
       aria-label="QR code preview for the generated secure link"
       role="img"
     >
@@ -290,16 +290,16 @@ function GeneratedLinkPreview({ generatedLink, onCopy }) {
       exit={{ opacity: 0, y: 12, scale: 0.98 }}
       className="relative overflow-hidden rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.07] p-5"
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cyan-300 via-emerald-300 to-blue-400" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-green-300 via-emerald-300 to-green-500" />
       <div className="flex items-center gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-200">
           <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-white">
+          <h2 className="sekura-heading text-lg font-bold">
             Secure Link Ready
           </h2>
-          <p className="text-sm text-slate-400">
+          <p className="sekura-muted text-sm">
             Share it through a trusted channel.
           </p>
         </div>
@@ -318,7 +318,7 @@ function GeneratedLinkPreview({ generatedLink, onCopy }) {
           <Button
             type="button"
             onClick={onCopy}
-            className="bg-white text-slate-950 hover:bg-cyan-100 lg:min-w-28"
+            className="bg-white text-slate-950 hover:bg-green-100 lg:min-w-28"
           >
             <Copy className="h-4 w-4" aria-hidden="true" />
             Copy
@@ -358,14 +358,14 @@ function RecentSecretsPanel({
   return (
     <Card className="p-5 sm:p-6 lg:sticky lg:top-28">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-200">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-400/10 text-green-200">
           <KeyRound className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-white">
+          <h2 className="sekura-heading text-lg font-bold">
             Recent Secrets
           </h2>
-          <p className="text-sm text-slate-400">
+          <p className="sekura-muted text-sm">
             Pick from your 5 latest secrets or search.
           </p>
         </div>
@@ -387,7 +387,7 @@ function RecentSecretsPanel({
 
       <div className="mt-5 space-y-3">
         {loadingSecrets && (
-          <div className="rounded-xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-400">
+          <div className="sekura-surface rounded-lg px-4 py-3 text-sm sekura-muted">
             Loading your secrets...
           </div>
         )}
@@ -399,7 +399,7 @@ function RecentSecretsPanel({
         )}
 
         {!loadingSecrets && !secretsError && displayedSecrets.length === 0 && (
-          <div className="rounded-xl border border-white/10 bg-slate-950/45 px-4 py-5 text-center text-sm text-slate-400">
+          <div className="sekura-surface rounded-lg px-4 py-5 text-center text-sm sekura-muted">
             No matching secrets found.
           </div>
         )}
@@ -416,12 +416,12 @@ function RecentSecretsPanel({
                 key={secretId}
                 className={`rounded-xl border p-4 transition ${
                   isSelected
-                    ? "border-cyan-300/40 bg-cyan-300/10"
-                    : "border-white/10 bg-slate-950/45 hover:border-cyan-300/25"
+                    ? "border-green-300/40 bg-green-300/10"
+                    : "border-slate-200 bg-white hover:border-green-200 dark:border-white/10 dark:bg-white/[0.06] dark:hover:border-green-300/25"
                 }`}
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="break-words text-sm font-bold text-white">
+                  <p className="sekura-heading break-words text-sm font-bold">
                     {secret.title}
                   </p>
                   <Button
@@ -606,13 +606,11 @@ export default function CreateSecretLinkPage() {
   };
 
   return (
-    <div className="relative isolate min-h-[calc(100vh-5rem)] overflow-hidden bg-slate-950 text-white">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_80%_20%,rgba(99,102,241,0.18),transparent_30%),radial-gradient(circle_at_50%_90%,rgba(16,185,129,0.12),transparent_35%),linear-gradient(135deg,#020617_0%,#0f172a_48%,#020617_100%)]" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-40" />
+    <div className="sekura-page min-h-[calc(100vh-5rem)]">
       {particles.map((particle, index) => (
         <motion.span
           key={index}
-          className="absolute -z-10 rounded-full bg-cyan-200/60 shadow-[0_0_18px_rgba(34,211,238,0.6)]"
+          className="hidden"
           style={{
             left: particle.left,
             top: particle.top,
@@ -637,17 +635,17 @@ export default function CreateSecretLinkPage() {
           transition={{ duration: 0.45 }}
           className="mx-auto w-full max-w-5xl text-center"
         >
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-2xl shadow-cyan-500/20">
-            <ShieldCheck className="h-8 w-8 text-cyan-200" aria-hidden="true" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl border border-green-200 bg-green-50 text-green-700 shadow-sm dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300">
+            <ShieldCheck className="h-8 w-8" aria-hidden="true" />
           </div>
-          <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.07] px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100">
+          <p className="sekura-kicker mt-5 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em]">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
             Zero-knowledge share
           </p>
-          <h1 className="mt-5 text-4xl font-black tracking-normal text-white sm:text-5xl">
+          <h1 className="sekura-heading mt-5 text-4xl font-black tracking-normal sm:text-5xl">
             Sekura Secret Link
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+          <p className="sekura-muted mx-auto mt-4 max-w-2xl text-base leading-7 sm:text-lg">
             Share secrets securely with end-to-end encryption. The server stores ciphertext only.
           </p>
         </motion.div>
@@ -665,15 +663,15 @@ export default function CreateSecretLinkPage() {
                 noValidate
               >
                 {selectedSecretTitle && (
-                  <div className="flex items-center gap-3 rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.07] p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
+                  <div className="flex items-center gap-3 rounded-2xl border border-green-300/20 bg-green-300/[0.07] p-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-300/10 text-green-200">
                       <KeyRound className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-100">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-100">
                         Selected secret
                       </p>
-                      <p className="mt-1 break-words text-sm font-bold text-white">
+                      <p className="sekura-heading mt-1 break-words text-sm font-bold">
                         {selectedSecretTitle}
                       </p>
                     </div>
@@ -715,7 +713,7 @@ export default function CreateSecretLinkPage() {
                           <option
                             key={option.value}
                             value={option.value}
-                            className="bg-slate-950 text-white"
+                            className="bg-white text-slate-950 dark:bg-slate-950 dark:text-white"
                           >
                             {option.label}
                           </option>
@@ -739,7 +737,7 @@ export default function CreateSecretLinkPage() {
                     />
                     <span
                       id="message-counter"
-                      className="absolute bottom-3 right-4 rounded-full bg-slate-950/70 px-2 py-1 text-xs font-semibold text-slate-400"
+                      className="absolute bottom-3 right-4 rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-950/70 dark:text-slate-400"
                     >
                       {messageLength}/1200
                     </span>
@@ -751,7 +749,7 @@ export default function CreateSecretLinkPage() {
                   <div>
                     <div className="flex items-center justify-between gap-3">
                       <Label htmlFor="password">Password Protection</Label>
-                      <span className="text-xs font-medium text-cyan-200">
+                      <span className="text-xs font-medium text-green-200">
                         Add extra protection
                       </span>
                     </div>
@@ -767,7 +765,7 @@ export default function CreateSecretLinkPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword((current) => !current)}
-                        className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                        className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition hover:bg-green-50 hover:text-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:hover:bg-white/10 dark:hover:text-green-100 dark:focus-visible:ring-green-300"
                         aria-label={
                           showPassword ? "Hide password" : "Show password"
                         }
@@ -781,9 +779,9 @@ export default function CreateSecretLinkPage() {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-slate-950/45 p-4">
+                  <div className="sekura-surface rounded-lg p-4">
                     <Label>Access Window</Label>
-                    <p className="mt-1 text-sm leading-5 text-slate-400">
+                    <p className="sekura-muted mt-1 text-sm leading-5">
                       Viewers can reopen this link until its expiration time.
                     </p>
                     <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-emerald-200">
@@ -796,7 +794,7 @@ export default function CreateSecretLinkPage() {
                   <Button
                     type="submit"
                     disabled={isEncrypting}
-                    className="min-h-12 bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 text-slate-950 shadow-xl shadow-cyan-500/25 hover:scale-[1.01] hover:from-cyan-200 hover:via-blue-300 hover:to-emerald-200"
+                    className="min-h-12 bg-gradient-to-r from-green-300 via-green-500 to-emerald-300 text-slate-950 shadow-xl shadow-green-500/25 hover:scale-[1.01] hover:from-green-200 hover:via-green-400 hover:to-emerald-200"
                   >
                     {isEncrypting ? (
                       <>

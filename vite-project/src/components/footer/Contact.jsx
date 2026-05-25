@@ -25,19 +25,18 @@ const contactItems = [
 
 export default function ContactUs() {
   return (
-    <div className="relative isolate min-h-full overflow-hidden bg-slate-950 px-4 py-10 text-slate-100 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_8%,rgba(34,211,238,0.14),transparent_30%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#020617_100%)]" />
-      <div className="mx-auto max-w-4xl rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl md:p-8">
-        <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+    <div className="sekura-page px-4 py-10 sm:px-6 lg:px-8">
+      <div className="sekura-panel mx-auto max-w-4xl rounded-xl p-6 md:p-8">
+        <p className="sekura-kicker rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
           <ShieldCheck className="h-4 w-4" />
           Support
         </p>
 
-        <h1 className="mt-5 text-4xl font-black text-white">
+        <h1 className="sekura-heading mt-5 text-4xl font-black">
           Contact Us
         </h1>
 
-        <p className="mt-4 text-slate-400">
+        <p className="sekura-muted mt-4">
           Have questions, security concerns, or feedback? Our team is here to help you.
         </p>
 
@@ -48,17 +47,17 @@ export default function ContactUs() {
             return (
               <div
                 key={item.title}
-                className="rounded-2xl border border-white/10 bg-slate-950/45 p-5"
+                className="sekura-surface rounded-xl p-5"
               >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-green-50 text-green-700 dark:bg-green-400/10 dark:text-green-300">
                   <ItemIcon className="h-5 w-5" />
                 </div>
 
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="sekura-heading text-xl font-bold">
                   {item.title}
                 </h2>
 
-                <p className="mt-2 text-slate-400">
+                <p className="sekura-muted mt-2">
                   {item.value}
                 </p>
               </div>

@@ -25,19 +25,18 @@ const sections = [
 
 export default function PrivacyPolicy() {
   return (
-    <div className="relative isolate min-h-full overflow-hidden bg-slate-950 px-4 py-10 text-slate-100 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_8%,rgba(34,211,238,0.14),transparent_30%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#020617_100%)]" />
-      <div className="mx-auto max-w-5xl rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl md:p-8">
-        <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+    <div className="sekura-page px-4 py-10 sm:px-6 lg:px-8">
+      <div className="sekura-panel mx-auto max-w-5xl rounded-xl p-6 md:p-8">
+        <p className="sekura-kicker rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
           <ShieldCheck className="h-4 w-4" />
           Privacy
         </p>
 
-        <h1 className="mt-5 text-4xl font-black text-white">
+        <h1 className="sekura-heading mt-5 text-4xl font-black">
           Privacy Policy
         </h1>
 
-        <p className="mt-4 max-w-3xl text-slate-400">
+        <p className="sekura-muted mt-4 max-w-3xl">
           At Sekura, we value your privacy and are committed to protecting your
           sensitive information. This Privacy Policy explains how we collect,
           use, store, and safeguard your data while using our platform.
@@ -47,13 +46,13 @@ export default function PrivacyPolicy() {
           {sections.map((section) => (
             <section
               key={section.title}
-              className="rounded-2xl border border-white/10 bg-slate-950/45 p-5"
+              className="sekura-surface rounded-xl p-5"
             >
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="sekura-heading text-2xl font-bold">
                 {section.title}
               </h2>
 
-              <p className="mt-3 text-slate-400">
+              <p className="sekura-muted mt-3">
                 {section.body}
               </p>
             </section>

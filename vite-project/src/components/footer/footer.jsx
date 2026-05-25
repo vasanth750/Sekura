@@ -22,10 +22,10 @@ const footerLinks = [
 
 export default function Footer() {
   return (
-    <footer className="relative w-full border-t border-white/10 bg-slate-950/90 px-4 py-5 text-slate-300 backdrop-blur-2xl sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full flex-col gap-5 border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/20 backdrop-blur-2xl md:flex-row md:items-center md:justify-between">
+    <footer className="w-full border-t border-slate-200 bg-white/85 px-4 py-5 text-slate-600 backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:text-slate-300 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full flex-col gap-5 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-2xl shadow-cyan-500/20">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-green-200 bg-green-50 shadow-sm dark:border-green-400/20 dark:bg-green-400/10">
             <img
               src={logo}
               alt="Sekura"
@@ -33,10 +33,10 @@ export default function Footer() {
             />
           </span>
           <div>
-            <p className="bg-gradient-to-r from-cyan-200 via-blue-200 to-emerald-200 bg-clip-text text-xl font-black text-transparent">
+            <p className="sekura-brand-text text-xl font-black">
               Sekura
             </p>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="sekura-muted mt-1 text-sm">
               &copy; 2026 Sekura Inc. All rights reserved.
             </p>
           </div>
@@ -47,9 +47,9 @@ export default function Footer() {
             <Link
               key={path}
               to={path}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-slate-300 no-underline transition-all hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-100"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-slate-600 no-underline transition-all hover:border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300 dark:hover:border-green-300/30 dark:hover:bg-green-300/10 dark:hover:text-green-100"
             >
-              <Icon className="h-4 w-4 text-cyan-200" aria-hidden="true" />
+              <Icon className="h-4 w-4 text-green-700 dark:text-green-300" aria-hidden="true" />
               {label}
             </Link>
           ))}

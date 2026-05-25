@@ -163,10 +163,7 @@ export default function Secrets() {
   );
 
   return (
-    <div className="relative isolate min-h-full overflow-hidden bg-slate-950 px-4 py-8 text-slate-100 md:px-8 lg:px-20">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_8%,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_82%_16%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#020617_100%)]" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-35" />
-
+    <div className="sekura-page px-4 py-8 md:px-8 lg:px-20">
       {showSecretPopup && (
         <AddSecret
           closePopup={() => setShowSecretPopup(false)}
@@ -198,18 +195,18 @@ export default function Secrets() {
       />
 
       <div className="mx-auto w-full max-w-7xl">
-        <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/30 backdrop-blur-2xl lg:flex-row lg:items-center lg:justify-between lg:p-7">
+        <div className="sekura-panel flex flex-col gap-6 rounded-xl p-5 lg:flex-row lg:items-center lg:justify-between lg:p-7">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+            <p className="sekura-kicker rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
               <ShieldCheck className="h-4 w-4" />
               Encrypted registry
             </p>
 
-            <h1 className="mt-4 text-3xl font-black text-white md:text-5xl">
+            <h1 className="sekura-heading mt-4 text-3xl font-black md:text-5xl">
               Secrets Management
             </h1>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
+            <p className="sekura-muted mt-3 max-w-2xl text-sm leading-6 md:text-base">
               Securely manage, monitor, and rotate environment variables, API
               keys, certificates, and shared access links.
             </p>
@@ -217,7 +214,7 @@ export default function Secrets() {
 
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.08] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:bg-white/[0.12]"
+              className="sekura-secondary-btn inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition"
               onClick={() => setShowSecretPopup(true)}
             >
               <Plus className="h-4 w-4" />
@@ -225,7 +222,7 @@ export default function Secrets() {
             </button>
 
             <button
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01]"
+              className="sekura-primary-btn inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-bold transition hover:scale-[1.01]"
               onClick={() => navigate("/create-link")}
             >
               <Link2 className="h-4 w-4" />
@@ -234,30 +231,30 @@ export default function Secrets() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.07] p-4 shadow-2xl shadow-black/20 backdrop-blur-2xl">
+        <div className="sekura-panel mt-6 rounded-xl p-4">
           <div className="relative max-w-xl">
             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search secrets by name, tags, or role..."
-              className="h-12 w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 pl-12 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25"
+              className="sekura-input h-12 w-full rounded-lg px-4 pl-12 text-sm outline-none transition"
             />
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
-          <div className="border-b border-white/10 p-6">
-            <h2 className="text-xl font-black text-white">
+        <div className="sekura-panel mt-6 overflow-hidden rounded-xl">
+          <div className="border-b border-slate-200 p-6 dark:border-white/10">
+            <h2 className="sekura-heading text-xl font-black">
               Your Secrets
             </h2>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="sekura-muted mt-1 text-sm">
               Displaying the most recently added secrets in your workspace.
             </p>
           </div>
 
           <div className="overflow-x-auto">
-            <div className="grid min-w-[980px] grid-cols-[1.35fr_0.9fr_1.2fr_1.2fr_1fr] items-center gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm font-bold text-cyan-100">
+            <div className="sekura-table-head grid min-w-[980px] grid-cols-[1.35fr_0.9fr_1.2fr_1.2fr_1fr] items-center gap-4 border-b px-4 py-3 text-sm font-bold">
               <div className="p-4">Secret Name</div>
               <div className="p-4 text-center">Type</div>
               <div className="p-4 text-center">Created</div>
@@ -266,19 +263,19 @@ export default function Secrets() {
             </div>
 
             {loading && (
-              <div className="p-6 text-sm text-slate-400">
+              <div className="sekura-muted p-6 text-sm">
                 Loading secrets...
               </div>
             )}
 
             {error && (
-              <div className="p-6 text-sm font-medium text-red-300">
+              <div className="p-6 text-sm font-medium text-red-600 dark:text-red-300">
                 {error}
               </div>
             )}
 
             {!loading && !error && secrets.length === 0 && (
-              <div className="p-6 text-sm text-slate-400">
+              <div className="sekura-muted p-6 text-sm">
                 No secrets stored yet.
               </div>
             )}
@@ -289,10 +286,10 @@ export default function Secrets() {
               return (
                 <div
                   key={secretId}
-                  className="grid min-w-[980px] grid-cols-[1.35fr_0.9fr_1.2fr_1.2fr_1fr] items-center gap-4 border-b border-white/10 px-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                  className="sekura-row grid min-w-[980px] grid-cols-[1.35fr_0.9fr_1.2fr_1.2fr_1fr] items-center gap-4 border-b px-4 text-sm transition last:border-b-0"
                 >
-                  <div className="flex min-w-0 items-center gap-3 p-4 font-semibold text-white">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
+                  <div className="sekura-heading flex min-w-0 items-center gap-3 p-4 font-semibold">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 text-green-700 dark:bg-green-400/10 dark:text-green-300">
                       <KeyRound className="h-4 w-4" />
                     </span>
                     <span className="truncate" title={secret.title}>
@@ -304,11 +301,11 @@ export default function Secrets() {
                     {getSecretSourceLabel(secret)}
                   </div>
 
-                  <div className="whitespace-nowrap p-4 text-center text-slate-400">
+                  <div className="sekura-muted whitespace-nowrap p-4 text-center">
                     {new Date(secret.createdAt).toLocaleString()}
                   </div>
 
-                  <div className="whitespace-nowrap p-4 text-center text-slate-400">
+                  <div className="sekura-muted whitespace-nowrap p-4 text-center">
                     {new Date(secret.updatedAt || secret.createdAt).toLocaleString()}
                   </div>
 
@@ -326,7 +323,7 @@ export default function Secrets() {
             })}
           </div>
 
-          <div className="flex items-center justify-between border-t border-white/10 px-5 py-4 text-sm text-slate-300">
+          <div className="sekura-muted flex items-center justify-between border-t border-slate-200 px-5 py-4 text-sm dark:border-white/10">
             <span>
               Page {secretPage + 1} of {secretPageCount}
             </span>
@@ -335,7 +332,7 @@ export default function Secrets() {
                 type="button"
                 onClick={() => setSecretPage((page) => Math.max(0, page - 1))}
                 disabled={secretPage === 0}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                className="sekura-secondary-btn inline-flex h-9 w-9 items-center justify-center rounded-lg text-green-700 transition disabled:cursor-not-allowed disabled:opacity-40 dark:text-green-300"
                 aria-label="Previous secrets page"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -344,7 +341,7 @@ export default function Secrets() {
                 type="button"
                 onClick={() => setSecretPage((page) => Math.min(secretPageCount - 1, page + 1))}
                 disabled={secretPage >= secretPageCount - 1}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                className="sekura-secondary-btn inline-flex h-9 w-9 items-center justify-center rounded-lg text-green-700 transition disabled:cursor-not-allowed disabled:opacity-40 dark:text-green-300"
                 aria-label="Next secrets page"
               >
                 <ChevronRight className="h-4 w-4" />

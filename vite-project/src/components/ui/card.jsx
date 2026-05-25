@@ -5,7 +5,7 @@ export const Card = React.forwardRef(({ className, ...props }, ref) => (
   <section
     ref={ref}
     className={cn(
-      "rounded-2xl border border-white/10 bg-white/[0.08] shadow-2xl shadow-black/30 backdrop-blur-2xl",
+      "rounded-xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-900 dark:shadow-none",
       className
     )}
     {...props}

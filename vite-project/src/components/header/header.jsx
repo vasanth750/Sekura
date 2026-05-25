@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Inbox, KeyRound, Link2, Menu, ShieldCheck, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { Inbox, KeyRound, Link2, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
 import ProfileButton from "./profile";
 import logo from "../../assets/SekuraLogo.png";
 import { cn } from "../../lib/utils";
+import { useTheme } from "../../theme/useTheme";
 
 const navLinks = [
   { name: "Dashboard", path: "/dashboard", icon: ShieldCheck },
@@ -15,23 +17,23 @@ const navLinks = [
 function Brand({ compact = false }) {
   return (
     <span className="flex min-w-0 items-center gap-2 sm:gap-3">
-      <span className={cn("flex shrink-0 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-lg shadow-cyan-500/20", compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-12 w-12")}>
+      <span className={cn("flex shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 shadow-sm dark:border-green-400/20 dark:bg-green-400/10", compact ? "h-9 w-9 sm:h-10 sm:w-10" : "h-11 w-11")}>
         <img src={logo} alt="Sekura" className={cn("object-contain", compact ? "h-7 w-7 sm:h-8 sm:w-8" : "h-9 w-9")} />
       </span>
-      <span className={cn("truncate bg-gradient-to-r from-cyan-200 via-blue-200 to-emerald-200 bg-clip-text font-black tracking-normal text-transparent drop-shadow-[0_0_18px_rgba(34,211,238,0.2)]", compact ? "text-xl sm:text-2xl" : "text-3xl")}>Sekura</span>
+      <span className={cn("sekura-brand-text truncate font-black tracking-normal", compact ? "text-xl sm:text-2xl" : "text-3xl")}>Sekura</span>
     </span>
   );
 }
 
 function DesktopNav({ location }) {
   return (
-    <nav className="hidden min-w-0 items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.07] p-1.5 shadow-2xl shadow-black/20 backdrop-blur-2xl lg:flex">
+    <nav className="hidden min-w-0 items-center gap-1 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-sm backdrop-blur lg:flex dark:border-white/10 dark:bg-slate-900/80">
       {navLinks.map(({ name, path, icon: Icon }) => {
         const isActive = location.pathname === path;
 
         return (
-          <Link key={path} to={path} className={cn("group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-300 xl:px-4", isActive ? "border border-cyan-300/35 bg-cyan-300/12 text-cyan-50 shadow-lg shadow-cyan-500/10" : "text-slate-300 hover:bg-white/10 hover:text-white")}>
-            <Icon className={cn("h-4 w-4 transition duration-300", isActive ? "text-cyan-200" : "text-slate-500 group-hover:text-cyan-200")} aria-hidden="true" />
+          <Link key={path} to={path} className={cn("group inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200 xl:px-4", isActive ? "bg-green-50 text-green-700 shadow-sm ring-1 ring-green-200 dark:bg-green-400/10 dark:text-green-300 dark:ring-green-400/20" : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white")}>
+            <Icon className={cn("h-4 w-4 transition duration-200", isActive ? "text-green-700 dark:text-green-300" : "text-slate-500 group-hover:text-green-700 dark:group-hover:text-green-300")} aria-hidden="true" />
             {name}
           </Link>
         );
@@ -40,10 +42,50 @@ function DesktopNav({ location }) {
   );
 }
 
+function ThemeToggle({ compact = false }) {
+  const { isDark, toggleTheme } = useTheme();
+  const Icon = isDark ? Moon : Sun;
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={cn(
+        "group relative inline-flex h-11 shrink-0 items-center rounded-full border border-slate-200 bg-slate-100 p-1 text-slate-700 shadow-sm transition-all duration-300 hover:border-green-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100",
+        compact ? "w-11 justify-center sm:w-[5.6rem] sm:justify-start" : "w-[5.6rem]"
+      )}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <motion.span
+        layoutId={compact ? "mobile-theme-thumb" : "desktop-theme-thumb"}
+        className={cn(
+          "absolute h-9 w-9 rounded-full bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-white/10",
+          isDark ? "right-1" : "left-1"
+        )}
+        transition={{ type: "spring", stiffness: 420, damping: 32 }}
+      />
+      <span className={cn("relative z-10 flex h-9 w-9 items-center justify-center rounded-full", isDark ? "text-green-300" : "text-green-700")}>
+        <motion.span
+          key={isDark ? "moon" : "sun"}
+          initial={{ rotate: -35, opacity: 0, scale: 0.7 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          transition={{ duration: 0.22 }}
+        >
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </motion.span>
+      </span>
+      <span className={cn("relative z-10 hidden flex-1 text-xs font-bold sm:block", isDark ? "pr-9 text-slate-300" : "pl-9 text-slate-600")}>
+        {isDark ? "Dark" : "Light"}
+      </span>
+    </button>
+  );
+}
+
 function MobileNavLink({ icon: Icon, isActive, name, onClick, path }) {
   return (
-    <Link to={path} onClick={onClick} className={cn("group flex min-h-12 w-full items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold transition-all duration-300", isActive ? "border-cyan-300/45 bg-cyan-300/15 text-cyan-50 shadow-lg shadow-cyan-500/15" : "border-white/10 bg-white/[0.07] text-slate-100 hover:border-cyan-300/35 hover:bg-cyan-300/10 hover:text-white")}>
-      <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-300", isActive ? "bg-cyan-300/15 text-cyan-100" : "bg-slate-900/80 text-cyan-200/80 group-hover:text-cyan-100")}>
+    <Link to={path} onClick={onClick} className={cn("group flex min-h-12 w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-bold transition-all duration-200", isActive ? "border-green-200 bg-green-50 text-green-700 dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300" : "border-slate-200 bg-white text-slate-700 hover:border-green-200 hover:bg-green-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100 dark:hover:border-green-300/35 dark:hover:bg-green-300/10")}>
+      <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-all duration-200", isActive ? "bg-green-100 text-green-700 dark:bg-green-400/10 dark:text-green-300" : "bg-slate-100 text-slate-500 group-hover:text-green-700 dark:bg-slate-900/80 dark:text-green-200/80")}>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1 truncate">{name}</span>
@@ -55,23 +97,23 @@ function MobileDrawer({ location, onClose }) {
   return (
     <>
       <div onClick={onClose} className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-md animate-[sekuraBackdropFade_300ms_ease-out]" />
-      <aside className="fixed inset-y-0 left-0 z-[90] flex h-screen w-[min(88vw,20rem)] max-w-full flex-col overflow-hidden border-r border-cyan-300/25 bg-[#071028]/98 text-slate-100 shadow-[24px_0_70px_rgba(0,0,0,0.55)] backdrop-blur-2xl animate-[sekuraMobileDrawerSlide_300ms_ease-out]" aria-label="Mobile navigation">
-        <div className="h-1 w-full bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300" />
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4">
+      <aside className="fixed inset-y-0 left-0 z-[90] flex h-screen w-[min(88vw,20rem)] max-w-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-950 shadow-[24px_0_70px_rgba(15,23,42,0.16)] animate-[sekuraMobileDrawerSlide_300ms_ease-out] dark:border-white/10 dark:bg-slate-950 dark:text-slate-100" aria-label="Mobile navigation">
+        <div className="h-1 w-full bg-green-600" />
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 dark:border-white/10">
           <Link to="/dashboard" onClick={onClose} className="min-w-0">
             <Brand compact />
           </Link>
-          <button type="button" onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.08] text-slate-100 transition-all duration-300 hover:border-cyan-300/40 hover:bg-cyan-300/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300" aria-label="Close navigation">
+          <button type="button" onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition-all duration-200 hover:border-green-200 hover:bg-green-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:border-white/10 dark:bg-white/[0.08] dark:text-slate-100" aria-label="Close navigation">
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
-          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.07] p-4 shadow-[0_0_28px_rgba(34,211,238,0.08)]">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
+          <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-400/20 dark:bg-green-400/10">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-green-700 dark:text-green-300">
               <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="truncate">Secure Workspace</span>
             </p>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Manage secrets and protected links from one encrypted space.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Manage secrets and protected links from one encrypted space.</p>
           </div>
           <nav className="mt-5 flex flex-col gap-2">
             {navLinks.map((link) => <MobileNavLink key={link.path} {...link} isActive={location.pathname === link.path} onClick={onClose} />)}
@@ -107,16 +149,17 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-white/10 bg-slate-950/80 shadow-2xl shadow-black/20 backdrop-blur-2xl">
-      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center px-3 py-3 sm:px-5 lg:min-h-20 lg:px-8">
-        <div className="grid w-full grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-2 lg:hidden">
-          <button type="button" onClick={() => setMobileMenuOpen(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-300/40 bg-cyan-300/15 text-cyan-50 shadow-lg shadow-cyan-500/15 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-cyan-200/70 hover:bg-cyan-300/25 hover:shadow-[0_0_22px_rgba(34,211,238,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300" aria-label="Open navigation">
+    <header className="sticky top-0 z-20 w-full border-b border-slate-200 bg-white/85 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85">
+      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center px-3 py-3 sm:px-5 lg:min-h-[4.5rem] lg:px-8">
+        <div className="grid w-full grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-2 lg:hidden">
+          <button type="button" onClick={() => setMobileMenuOpen(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-green-200 hover:bg-green-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:border-white/10 dark:bg-white/[0.08] dark:text-green-100" aria-label="Open navigation">
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
           <Link to="/dashboard" className="mx-auto min-w-0 max-w-full overflow-hidden">
             <Brand compact />
           </Link>
-          <div className="flex min-w-0 justify-end overflow-visible">
+          <div className="flex min-w-0 items-center justify-end gap-2 overflow-visible">
+            <ThemeToggle compact />
             <ProfileButton profileOpen={profileOpen} setProfileOpen={setProfileOpen} user={user} logout={logout} />
           </div>
         </div>
@@ -126,7 +169,8 @@ export default function Header() {
             <Brand />
           </Link>
           <DesktopNav location={location} />
-          <div className="shrink-0">
+          <div className="flex shrink-0 items-center justify-end gap-3">
+            <ThemeToggle />
             <ProfileButton profileOpen={profileOpen} setProfileOpen={setProfileOpen} user={user} logout={logout} />
           </div>
         </div>

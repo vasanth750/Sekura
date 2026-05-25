@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, ShieldCheck, UserRound } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
 import img from "../assets/SekuraLogo.png";
 import api from "../api";
 
@@ -115,39 +116,84 @@ function Signup() {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25";
+    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-950 shadow-inner shadow-slate-900/5 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/15 dark:border-white/10 dark:bg-slate-950/50 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-green-300/70 dark:focus:ring-green-400/25";
+
+  const primaryButton =
+    "group flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-bold text-white shadow-xl shadow-green-500/20 transition hover:scale-[1.01] hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gradient-to-r dark:from-green-300 dark:via-green-500 dark:to-emerald-300 dark:text-slate-950";
 
   return (
-    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-10 text-slate-100">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.14),transparent_30%),linear-gradient(135deg,#020617_0%,#0f172a_50%,#020617_100%)]" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-40" />
+    <div className="sekura-auth-page relative isolate min-h-screen overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+      <div className="sekura-auth-bg absolute -inset-8 -z-20" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(15,23,42,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.045)_1px,transparent_1px)] bg-[size:58px_58px] opacity-60 dark:bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] dark:opacity-40" />
 
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.08] p-6 shadow-2xl shadow-black/30 backdrop-blur-2xl sm:p-8">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/30 bg-cyan-300/10 shadow-2xl shadow-cyan-500/20">
-            <img
-              src={img}
-              alt="Sekura Logo"
-              className="h-12 w-12 object-contain"
-            />
+      <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <motion.aside
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="hidden lg:block"
+        >
+          <div className="max-w-xl">
+            <div className="mb-8 flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-green-200 bg-white shadow-xl shadow-green-900/5 dark:border-green-300/20 dark:bg-white/[0.06]">
+                <img src={img} alt="Sekura Logo" className="h-10 w-10 object-contain" />
+              </div>
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.24em] text-green-700 dark:text-green-300">
+                  Sekura
+                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Encrypted onboarding
+                </p>
+              </div>
+            </div>
+
+            <h1 className="text-5xl font-black leading-[1.05] tracking-normal text-slate-950 dark:text-white">
+              Start sharing secrets with verified access.
+            </h1>
+            <p className="mt-5 max-w-lg text-lg leading-8 text-slate-600 dark:text-slate-300">
+              Create your workspace, verify your email, and keep sensitive handoffs protected from the first login.
+            </p>
+
+            <div className="mt-8 grid gap-3">
+              {["Email OTP verification", "Encrypted secret workspace", "Protected request flows"].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/85 px-4 py-3 shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-green-100 text-green-700 dark:bg-green-400/10 dark:text-green-300">
+                    <ShieldCheck className="h-4 w-4" />
+                  </span>
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.aside>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
+          className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.08] dark:shadow-2xl dark:shadow-black/30 sm:p-8"
+        >
+          <div className="mb-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-green-200 bg-green-50 shadow-xl shadow-green-900/5 dark:border-green-300/30 dark:bg-green-300/10 dark:shadow-green-500/20">
+              <img src={img} alt="Sekura Logo" className="h-12 w-12 object-contain" />
+            </div>
+
+            <p className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-green-700 dark:border-green-300/20 dark:bg-green-300/10 dark:text-green-100">
+              <ShieldCheck className="h-4 w-4" />
+              Create account
+            </p>
+
+            <h1 className="mt-4 text-3xl font-black text-slate-950 dark:text-white">
+              Join Sekura
+            </h1>
+
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Set up your encrypted workspace.
+            </p>
           </div>
 
-          <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
-            <ShieldCheck className="h-4 w-4" />
-            Create account
-          </p>
-
-          <h1 className="mt-4 text-3xl font-black text-white">
-            Join Sekura
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-400">
-            Set up your encrypted workspace.
-          </p>
-        </div>
-
-        <div className="space-y-5">
-          <div>
+          <form className="space-y-5">
             <div className="relative">
               <UserRound className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
               <input
@@ -163,9 +209,8 @@ function Signup() {
             </div>
 
             {nameError && (
-              <p className="mt-2 text-sm text-red-300">{nameError}</p>
+              <p className="mt-2 text-sm text-red-600 dark:text-red-300">{nameError}</p>
             )}
-          </div>
 
           <div>
             <div className="relative">
@@ -183,47 +228,59 @@ function Signup() {
             </div>
 
             {emailError && (
-              <p className="mt-2 text-sm text-red-300">{emailError}</p>
+              <p className="mt-2 text-sm text-red-600 dark:text-red-300">{emailError}</p>
             )}
           </div>
 
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setPasswordError("");
-            }}
-            className={inputClass}
-          />
+          <div>
+            <div className="relative">
+              <LockKeyhole className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+              <input
+                type="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError("");
+                }}
+                className={`${inputClass} pl-12`}
+              />
+            </div>
+          </div>
 
           {passwordError && (
-            <p className="text-sm text-red-300">{passwordError}</p>
+            <p className="text-sm text-red-600 dark:text-red-300">{passwordError}</p>
           )}
 
-          <input
-            type="password"
-            placeholder="Re-enter password"
-            value={reEnter}
-            onChange={(e) => {
-              setReEnter(e.target.value);
-              setRePasswordError("");
-            }}
-            className={inputClass}
-          />
+          <div>
+            <div className="relative">
+              <LockKeyhole className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+              <input
+                type="password"
+                placeholder="Re-enter password"
+                value={reEnter}
+                onChange={(e) => {
+                  setReEnter(e.target.value);
+                  setRePasswordError("");
+                }}
+                className={`${inputClass} pl-12`}
+              />
+            </div>
+          </div>
 
           {rePasswordError && (
-            <p className="text-sm text-red-300">{rePasswordError}</p>
+            <p className="text-sm text-red-600 dark:text-red-300">{rePasswordError}</p>
           )}
 
           {!otpSent && (
             <button
+              type="button"
               onClick={sendOTP}
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 py-3 font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+              className={primaryButton}
             >
               {loading ? "Sending OTP..." : "Send OTP"}
+              {!loading && <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />}
             </button>
           )}
 
@@ -242,14 +299,15 @@ function Signup() {
                 />
 
                 {otpError && (
-                  <p className="mt-2 text-sm text-red-300">{otpError}</p>
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-300">{otpError}</p>
                 )}
               </div>
 
               <button
+                type="button"
                 onClick={verifyOTP}
                 disabled={loading}
-                className="w-full rounded-xl bg-emerald-300 py-3 font-bold text-slate-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+                className={primaryButton}
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </button>
@@ -257,8 +315,8 @@ function Signup() {
           )}
 
           {otpVerified && (
-            <div className="rounded-xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-center">
-              <p className="font-medium text-emerald-200">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center dark:border-emerald-300/25 dark:bg-emerald-300/10">
+              <p className="font-medium text-green-700 dark:text-emerald-200">
                 Email Verified Successfully
               </p>
             </div>
@@ -266,24 +324,27 @@ function Signup() {
 
           {otpVerified && (
             <button
+              type="button"
               onClick={handleSignup}
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 py-3 font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+              className={primaryButton}
             >
               {loading ? "Creating Account..." : "Signup"}
+              {!loading && <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />}
             </button>
           )}
 
-          <p className="pt-2 text-center text-sm text-slate-400">
+          <p className="pt-2 text-center text-sm text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-semibold text-cyan-200 no-underline transition hover:text-cyan-100"
+              className="font-semibold text-green-700 no-underline transition hover:text-green-800 dark:text-green-300 dark:hover:text-green-200"
             >
               Login
             </Link>
           </p>
-        </div>
+          </form>
+        </motion.div>
       </div>
     </div>
   );

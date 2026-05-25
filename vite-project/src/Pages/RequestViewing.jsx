@@ -65,15 +65,18 @@ async function markSecureLinkOpened(id) {
   await api.post(`/api/share-links/${id}/open`);
 }
 
-function StatusCard({ icon: Icon, title, text, tone = "cyan" }) {
-  const toneClass = tone === "red" ? "border-red-300/25 bg-red-500/10 text-red-100" : "border-cyan-300/20 bg-cyan-300/[0.08] text-cyan-100";
+function StatusCard({ icon: Icon, title, text, tone = "green" }) {
+  const toneClass =
+    tone === "red"
+      ? "border-red-200 bg-red-50 text-red-700 dark:border-red-300/25 dark:bg-red-500/10 dark:text-red-100"
+      : "border-green-200 bg-green-50 text-green-700 dark:border-green-300/20 dark:bg-green-300/[0.08] dark:text-green-100";
 
   return (
     <div className={`flex items-start gap-3 rounded-2xl border p-4 ${toneClass}`}>
       <Icon className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
       <div>
-        <p className="font-bold text-white">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-slate-300">{text}</p>
+        <p className="sekura-heading font-bold">{title}</p>
+        <p className="sekura-muted mt-1 text-sm leading-6">{text}</p>
       </div>
     </div>
   );
@@ -242,20 +245,20 @@ export default function RequestPage() {
   };
 
   return (
-    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-4 text-slate-100">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.16),transparent_32%),radial-gradient(circle_at_80%_20%,rgba(16,185,129,0.13),transparent_30%),linear-gradient(135deg,#020617_0%,#0f172a_50%,#020617_100%)]" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-35" />
+    <div className="sekura-page flex min-h-screen items-center justify-center p-4">
+      
+      
 
-      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/10 bg-white/[0.08] shadow-2xl shadow-black/30 backdrop-blur-2xl">
-        <div className="border-b border-white/10 bg-cyan-300/10 p-7 text-white md:p-8">
+      <div className="sekura-panel w-full max-w-2xl overflow-hidden rounded-xl">
+        <div className="border-b border-green-200 bg-green-50 p-7 dark:border-green-400/20 dark:bg-green-400/10 md:p-8">
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-3 text-cyan-100">
+            <div className="rounded-xl border border-green-200 bg-white p-3 text-green-700 dark:border-green-400/20 dark:bg-green-400/10 dark:text-green-300">
               <ShieldCheck size={34} />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-100">Secure Link</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-700 dark:text-green-300">Secure Link</p>
               <h1 className="mt-1 text-3xl font-black">Sekura Secret</h1>
-              <p className="mt-1 text-sm text-slate-400 md:text-base">This secret decrypts locally in your browser.</p>
+              <p className="sekura-muted mt-1 text-sm md:text-base">This secret decrypts locally in your browser.</p>
             </div>
           </div>
         </div>
@@ -263,8 +266,8 @@ export default function RequestPage() {
         <div className="p-6 md:p-10">
           {loading && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Loader2 className="h-10 w-10 animate-spin text-cyan-200" aria-hidden="true" />
-              <p className="mt-4 font-semibold text-white">Opening secure link...</p>
+              <Loader2 className="h-10 w-10 animate-spin text-green-200" aria-hidden="true" />
+              <p className="sekura-heading mt-4 font-semibold">Opening secure link...</p>
             </div>
           )}
 
@@ -279,22 +282,22 @@ export default function RequestPage() {
                 <StatusCard icon={AlertTriangle} title="Submission Failed" text={error} tone="red" />
               )}
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-100">Requested Secret</label>
-                <input type="text" value={collectionRequest.title} disabled className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-4 font-medium text-slate-400" />
+                <label className="sekura-heading mb-2 block text-sm font-semibold">Requested Secret</label>
+                <input type="text" value={collectionRequest.title} disabled className="sekura-input w-full rounded-lg px-4 py-4 font-medium opacity-70" />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-100">Enter Secret</label>
+                <label className="sekura-heading mb-2 block text-sm font-semibold">Enter Secret</label>
                 <div className="relative">
                   <input type={showCollectionSecret ? "text" : "password"} placeholder="Enter the requested secret" value={collectionSecretValue} onChange={(event) => {
                     setCollectionSecretValue(event.target.value);
                     setError("");
-                  }} className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-4 pr-14 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25" />
-                  <button type="button" className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-cyan-100" onClick={() => setShowCollectionSecret((current) => !current)} aria-label={showCollectionSecret ? "Hide secret" : "Show secret"}>
+                  }} className="sekura-input w-full rounded-lg px-4 py-4 pr-14 outline-none transition" />
+                  <button type="button" className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-green-100" onClick={() => setShowCollectionSecret((current) => !current)} aria-label={showCollectionSecret ? "Hide secret" : "Show secret"}>
                     {showCollectionSecret ? <EyeOff size={22} /> : <Eye size={22} />}
                   </button>
                 </div>
               </div>
-              <button type="submit" disabled={!collectionSecretValue.trim() || submittingCollection} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 py-4 text-lg font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50">
+              <button type="submit" disabled={!collectionSecretValue.trim() || submittingCollection} className="sekura-primary-btn flex w-full items-center justify-center gap-2 rounded-lg py-4 text-lg font-bold transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50">
                 {submittingCollection && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
                 {submittingCollection ? "Submitting..." : "Submit Secret Securely"}
               </button>
@@ -306,8 +309,8 @@ export default function RequestPage() {
               <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-emerald-300/25 bg-emerald-300/10">
                 <ShieldCheck size={40} className="text-emerald-200" />
               </div>
-              <h2 className="text-3xl font-black text-white">Secret Submitted</h2>
-              <p className="mt-3 max-w-md text-slate-400">Your secret was encrypted and added to the requester&apos;s dashboard and credential registry.</p>
+              <h2 className="sekura-heading text-3xl font-black">Secret Submitted</h2>
+              <p className="sekura-muted mt-3 max-w-md">Your secret was encrypted and added to the requester&apos;s dashboard and credential registry.</p>
             </div>
           )}
 
@@ -315,15 +318,15 @@ export default function RequestPage() {
             <form onSubmit={unlockProtectedSecret} className="space-y-5">
               <StatusCard icon={KeyRound} title="Password Required" text="This link needs both the URL key and the sender's password before it can decrypt." />
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-100" htmlFor="sharePassword">Secure link password</label>
+                <label className="sekura-heading mb-2 block text-sm font-semibold" htmlFor="sharePassword">Secure link password</label>
                 <div className="relative">
-                  <input id="sharePassword" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter password" className="w-full rounded-xl border border-white/10 bg-slate-950/50 px-4 py-4 pr-14 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/70 focus:ring-2 focus:ring-cyan-400/25" />
-                  <button type="button" onClick={() => setShowPassword((current) => !current)} className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-cyan-100" aria-label={showPassword ? "Hide password" : "Show password"}>
+                  <input id="sharePassword" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter password" className="sekura-input w-full rounded-lg px-4 py-4 pr-14 outline-none transition" />
+                  <button type="button" onClick={() => setShowPassword((current) => !current)} className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-green-100" aria-label={showPassword ? "Hide password" : "Show password"}>
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
               </div>
-              <button type="submit" disabled={decrypting} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 via-blue-400 to-emerald-300 py-4 text-lg font-bold text-slate-950 shadow-xl shadow-cyan-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={decrypting} className="sekura-primary-btn flex w-full items-center justify-center gap-2 rounded-lg py-4 text-lg font-bold transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60">
                 {decrypting ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <LockKeyhole className="h-5 w-5" aria-hidden="true" />}
                 {decrypting ? "Decrypting..." : "Unlock Secret"}
               </button>
@@ -333,13 +336,13 @@ export default function RequestPage() {
           {!loading && secret && !linkExpired && (
             <div className="space-y-5">
               <StatusCard icon={CheckCircle2} title="Secret Decrypted" text="The server sent encrypted data only. Your browser used the URL key to reveal it here." />
-              <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Secret Name</p>
-                <h2 className="mt-2 break-words text-2xl font-black text-white">{secret.title || linkData.title}</h2>
+              <div className="sekura-surface rounded-xl p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Secret Name</p>
+                <h2 className="sekura-heading mt-2 break-words text-2xl font-black">{secret.title || linkData.title}</h2>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Secret Message</p>
-                <pre className="mt-3 whitespace-pre-wrap break-words rounded-xl border border-white/10 bg-black/25 p-4 font-sans text-base leading-7 text-slate-100">{secret.message}</pre>
+              <div className="sekura-surface rounded-xl p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Secret Message</p>
+                <pre className="sekura-input mt-3 whitespace-pre-wrap break-words rounded-lg p-4 font-sans text-base leading-7">{secret.message}</pre>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <StatusCard icon={Clock} title="Expires" text={new Date(linkData.expiresAt).toLocaleString()} />
