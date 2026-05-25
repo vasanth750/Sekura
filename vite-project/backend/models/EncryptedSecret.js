@@ -125,6 +125,12 @@ const encryptedSecretSchema = new mongoose.Schema(
             encryptionVersion: {
                 type: Number,
                 default: 1
+            },
+
+            source: {
+                type: String,
+                enum: ["manual", "request"],
+                default: "manual"
             }
         }
     },

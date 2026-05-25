@@ -66,7 +66,7 @@ router.post("/", auth, async (req, res) => {
       title,
       encryptedPayload,
       expiresAt,
-      burnAfterReading = true,
+      burnAfterReading = false,
       passwordProtected = false,
       passwordKdf,
     } = req.body;
@@ -172,7 +172,6 @@ router.get("/stats/summary", auth, async (req, res) => {
       expiresAt: {
         $gt: now,
       },
-      readCount: 0,
     };
 
     const [totalLinks, activeLinks, expiringSoon, recentLinks] = await Promise.all([
@@ -238,12 +237,6 @@ router.post("/:token/open", async (req, res) => {
       });
     }
 
-    if (shareLink.readCount > 0) {
-      return res.status(410).json({
-        message: "This secure link has already been opened",
-      });
-    }
-
     shareLink.readCount += 1;
     shareLink.openedAt = now;
 
@@ -289,12 +282,6 @@ router.get("/:token", async (req, res) => {
     if (shareLink.expiresAt <= now) {
       return res.status(410).json({
         message: "This secure link has expired",
-      });
-    }
-
-    if (shareLink.readCount > 0) {
-      return res.status(410).json({
-        message: "This secure link has already been opened",
       });
     }
 

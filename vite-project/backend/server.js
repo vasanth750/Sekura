@@ -57,6 +57,9 @@ app.get('/', (req, res) => {
 
 });
 
+const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
 // ======================================
 // SIGNUP API
 // ======================================
@@ -124,9 +127,6 @@ app.post("/newUser", async (req, res) => {
         // =========================
         // PASSWORD VALIDATION
         // =========================
-
-        const passwordPattern =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
         if (
             !passwordPattern.test(Password)
@@ -207,6 +207,103 @@ app.post("/newUser", async (req, res) => {
                 email: user.email
 
             }
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+
+            message:
+                "Server Error"
+
+        });
+
+    }
+
+});
+
+// ======================================
+// RESET PASSWORD API
+// ======================================
+
+app.post("/reset-password", async (req, res) => {
+
+    try {
+
+        const {
+            Email,
+            Password,
+            RePassword
+        } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
+
+        if (!isEmailRecentlyVerified(normalizedEmail)) {
+
+            return res.status(401).json({
+
+                message:
+                    "Email not verified"
+
+            });
+
+        }
+
+        if (Password !== RePassword) {
+
+            return res.status(400).json({
+
+                message:
+                    "Passwords do not match"
+
+            });
+
+        }
+
+        if (!passwordPattern.test(Password)) {
+
+            return res.status(400).json({
+
+                message:
+                    "Password must contain uppercase, lowercase, number and special character"
+
+            });
+
+        }
+
+        const user = await User.findOne({
+
+            email: normalizedEmail
+
+        });
+
+        if (!user) {
+
+            clearEmailVerification(normalizedEmail);
+
+            return res.status(404).json({
+
+                message:
+                    "Account not found"
+
+            });
+
+        }
+
+        user.password = await argon2.hash(Password);
+
+        await user.save();
+
+        clearEmailVerification(normalizedEmail);
+
+        return res.status(200).json({
+
+            message:
+                "Password reset successful"
 
         });
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { QRCodeSVG } from "qrcode.react";
 import { z } from "zod";
 import {
@@ -11,7 +11,6 @@ import {
   Eye,
   EyeOff,
   FileLock2,
-  Flame,
   KeyRound,
   Link2,
   Loader2,
@@ -27,7 +26,6 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Select } from "../components/ui/select";
-import { Switch } from "../components/ui/switch";
 import { Textarea } from "../components/ui/textarea";
 
 const expirationOptions = [
@@ -35,7 +33,6 @@ const expirationOptions = [
   { value: "1-hour", label: "1 Hour" },
   { value: "24-hours", label: "24 Hours" },
   { value: "7-days", label: "7 Days" },
-  { value: "one-time", label: "One Time View" },
 ];
 
 const expirationDurations = {
@@ -43,7 +40,6 @@ const expirationDurations = {
   "1-hour": 60 * 60 * 1000,
   "24-hours": 24 * 60 * 60 * 1000,
   "7-days": 7 * 24 * 60 * 60 * 1000,
-  "one-time": 24 * 60 * 60 * 1000,
 };
 
 const passwordKdfIterations = 210000;
@@ -59,7 +55,6 @@ const formSchema = z.object({
     .min(5, "Secret message must be at least 5 characters."),
   expiration: z.string().min(1, "Choose an expiration time."),
   password: z.string().optional(),
-  burnAfterReading: z.boolean(),
 });
 
 const defaultValues = {
@@ -67,7 +62,6 @@ const defaultValues = {
   message: "",
   expiration: "1-hour",
   password: "",
-  burnAfterReading: true,
 };
 
 const particles = Array.from({ length: 22 }, (_, index) => ({
@@ -183,8 +177,7 @@ async function createEncryptedShare(values) {
       message: values.message,
       expiration: values.expiration,
       passwordProtected,
-      burnAfterReading:
-        values.burnAfterReading || values.expiration === "one-time",
+      burnAfterReading: false,
       createdAt: new Date().toISOString(),
     })
   );
@@ -202,8 +195,7 @@ async function createEncryptedShare(values) {
       encoding: "base64url",
     },
     expiresAt: getExpirationDate(values.expiration).toISOString(),
-    burnAfterReading:
-      values.burnAfterReading || values.expiration === "one-time",
+    burnAfterReading: false,
     passwordProtected,
     passwordKdf: passwordKdf
       ? {
@@ -360,6 +352,9 @@ function RecentSecretsPanel({
   selectedSecretId,
   setSearchValue,
 }) {
+  const hasSearch = searchValue.trim().length > 0;
+  const displayedSecrets = hasSearch ? filteredSecrets : filteredSecrets.slice(0, 5);
+
   return (
     <Card className="p-5 sm:p-6 lg:sticky lg:top-28">
       <div className="flex items-center gap-3">
@@ -368,10 +363,10 @@ function RecentSecretsPanel({
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">
-            Search Secrets
+            Recent Secrets
           </h2>
           <p className="text-sm text-slate-400">
-            Pick a saved secret to prepare a link.
+            Pick from your 5 latest secrets or search.
           </p>
         </div>
       </div>
@@ -403,7 +398,7 @@ function RecentSecretsPanel({
           </div>
         )}
 
-        {!loadingSecrets && !secretsError && filteredSecrets.length === 0 && (
+        {!loadingSecrets && !secretsError && displayedSecrets.length === 0 && (
           <div className="rounded-xl border border-white/10 bg-slate-950/45 px-4 py-5 text-center text-sm text-slate-400">
             No matching secrets found.
           </div>
@@ -411,7 +406,7 @@ function RecentSecretsPanel({
 
         {!loadingSecrets &&
           !secretsError &&
-          filteredSecrets.map((secret) => {
+          displayedSecrets.map((secret) => {
             const secretId = secret._id || secret.id;
             const isSelected = selectedSecretId === secretId;
             const isLoading = loadingSecretId === secretId;
@@ -485,7 +480,6 @@ export default function CreateSecretLinkPage() {
   });
 
   const messageValue = useWatch({ control, name: "message" }) || "";
-  const burnAfterReading = useWatch({ control, name: "burnAfterReading" });
   const messageLength = messageValue.length;
 
   const showToast = (type, message) => {
@@ -788,31 +782,12 @@ export default function CreateSecretLinkPage() {
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-slate-950/45 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <Label htmlFor="burnAfterReading">
-                          Burn After Reading
-                        </Label>
-                        <p className="mt-1 text-sm leading-5 text-slate-400">
-                          Delete the secret permanently after first access
-                        </p>
-                      </div>
-                      <Controller
-                        name="burnAfterReading"
-                        control={control}
-                        render={({ field }) => (
-                          <Switch
-                            id="burnAfterReading"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            aria-label="Toggle burn after reading"
-                          />
-                        )}
-                      />
-                    </div>
+                    <Label>Access Window</Label>
+                    <p className="mt-1 text-sm leading-5 text-slate-400">
+                      Viewers can reopen this link until its expiration time.
+                    </p>
                     <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-emerald-200">
-                      <Flame className="h-4 w-4" aria-hidden="true" />
-                      {burnAfterReading ? "Auto-destroy enabled" : "Reusable until expiration"}
+                      Reusable until expiration
                     </p>
                   </div>
                 </div>

@@ -2,8 +2,17 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, KeyRound, Link2, ShieldCheck } from "lucide-react";
 import api from "../api";
+import {
+  DeleteSecretDialog,
+  EditSecretDialog,
+  SecretActionButtons,
+  SecretViewerDialog,
+} from "../components/secrets/SecretDialogs";
 
 const PAGE_SIZE = 5;
+
+const getSecretSourceLabel = (secret) =>
+  secret?.metadata?.source === "request" ? "Requested Secret" : "Your Secret";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,6 +26,11 @@ export default function Dashboard() {
   const [linkPage, setLinkPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewedSecret, setViewedSecret] = useState(null);
+  const [actionLoading, setActionLoading] = useState("");
+  const [secretToDelete, setSecretToDelete] = useState(null);
+  const [secretToEdit, setSecretToEdit] = useState(null);
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -66,6 +80,105 @@ export default function Dashboard() {
     linkPage * PAGE_SIZE + PAGE_SIZE
   );
 
+  const viewSecret = async (secretId) => {
+    try {
+      setError("");
+      setActionLoading(secretId);
+
+      const response = await api.get(
+        `/api/encrypted-secrets/${secretId}/decrypt`
+      );
+
+      setViewedSecret(response.data.secret);
+    } catch (error) {
+      setError(error.response?.data?.message || "Unable to decrypt secret");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const deleteSecret = async () => {
+    if (!secretToDelete) {
+      return;
+    }
+
+    const secretId = secretToDelete._id || secretToDelete.id;
+
+    try {
+      setError("");
+      setActionLoading(secretId);
+
+      await api.delete(`/api/encrypted-secrets/${secretId}`);
+
+      setSecrets((currentSecrets) =>
+        currentSecrets.filter((secret) => (secret._id || secret.id) !== secretId)
+      );
+
+      if ((viewedSecret?._id || viewedSecret?.id) === secretId) {
+        setViewedSecret(null);
+      }
+
+      setSecretToDelete(null);
+    } catch (error) {
+      setError(error.response?.data?.message || "Unable to delete secret");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const editSecret = async (secretId) => {
+    try {
+      setError("");
+      setEditError("");
+      setActionLoading(secretId);
+
+      const response = await api.get(
+        `/api/encrypted-secrets/${secretId}/decrypt`
+      );
+
+      setSecretToEdit(response.data.secret);
+    } catch (error) {
+      setError(error.response?.data?.message || "Unable to load secret for editing");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const saveEditedSecret = async ({ title, value }) => {
+    if (!secretToEdit) {
+      return;
+    }
+
+    const secretId = secretToEdit._id || secretToEdit.id;
+
+    try {
+      setEditError("");
+      setActionLoading(secretId);
+
+      const response = await api.put(`/api/encrypted-secrets/${secretId}`, {
+        title,
+        value,
+        type: secretToEdit.type || "secret",
+      });
+
+      setSecrets((currentSecrets) =>
+        currentSecrets.map((secret) =>
+          (secret._id || secret.id) === secretId ? response.data.secret : secret
+        )
+      );
+
+      if ((viewedSecret?._id || viewedSecret?.id) === secretId) {
+        setViewedSecret(null);
+      }
+
+      setSecretToEdit(null);
+    } catch (error) {
+      setEditError(error.response?.data?.message || "Unable to update secret");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
   const stats = [
     {
       title: "Total Secrets",
@@ -88,6 +201,29 @@ export default function Dashboard() {
     <div className="relative isolate min-h-full overflow-hidden bg-slate-950 px-4 py-8 text-slate-100 sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_16%_8%,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_84%_14%,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#020617_0%,#0f172a_50%,#020617_100%)]" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:56px_56px] opacity-35" />
+
+      <SecretViewerDialog
+        onClose={() => setViewedSecret(null)}
+        secret={viewedSecret}
+      />
+
+      <DeleteSecretDialog
+        loading={Boolean(actionLoading)}
+        onCancel={() => setSecretToDelete(null)}
+        onConfirm={deleteSecret}
+        secret={secretToDelete}
+      />
+
+      <EditSecretDialog
+        error={editError}
+        loading={Boolean(actionLoading)}
+        onCancel={() => {
+          setSecretToEdit(null);
+          setEditError("");
+        }}
+        onSave={saveEditedSecret}
+        secret={secretToEdit}
+      />
 
       <div className="mx-auto w-full max-w-7xl">
         <div className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/30 backdrop-blur-2xl md:flex-row md:items-center md:justify-between md:p-7">
@@ -143,8 +279,8 @@ export default function Dashboard() {
           })}
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
+        <div className="mt-6 grid items-stretch gap-6 lg:grid-cols-2">
+          <div className="flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
             <div className="border-b border-white/10 p-5">
               <h2 className="text-2xl font-black text-white">
                 Recent Secrets
@@ -154,58 +290,62 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[620px]">
-                <div className="grid grid-cols-[2.5fr_1.4fr_2fr_1fr] gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
+            <div className="flex-1 overflow-x-auto">
+              <div className="flex h-full min-w-[620px] flex-col">
+                <div className="grid grid-cols-[1.4fr_1fr_1fr] items-center gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
                   <p>Secret Name</p>
-                  <p>Type</p>
-                  <p>Added</p>
-                  <p>Actions</p>
+                  <p className="text-center">Type</p>
+                  <p className="text-center">Actions</p>
                 </div>
 
-                {loading && (
-                  <div className="px-5 py-4 text-sm text-slate-400">
-                    Loading recent secrets...
-                  </div>
-                )}
+                <div className="min-h-[340px] flex-1">
+                  {loading && (
+                    <div className="px-5 py-5 text-sm text-slate-400">
+                      Loading recent secrets...
+                    </div>
+                  )}
 
-                {error && (
-                  <div className="px-5 py-4 text-sm font-medium text-red-300">
-                    {error}
-                  </div>
-                )}
+                  {error && (
+                    <div className="px-5 py-5 text-sm font-medium text-red-300">
+                      {error}
+                    </div>
+                  )}
 
-                {!loading && !error && pagedSecrets.length === 0 && (
-                  <div className="px-5 py-4 text-sm text-slate-400">
-                    No secrets stored yet.
-                  </div>
-                )}
+                  {!loading && !error && pagedSecrets.length === 0 && (
+                    <div className="px-5 py-5 text-sm text-slate-400">
+                      No secrets stored yet.
+                    </div>
+                  )}
 
-                {!loading && !error && pagedSecrets.map((secret) => (
-                  <div
-                    key={secret._id || secret.id}
-                    className="grid grid-cols-[2.5fr_1.4fr_2fr_1fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
-                  >
-                    <p className="font-semibold text-white">
-                      {secret.title}
-                    </p>
+                  {!loading && !error && pagedSecrets.map((secret) => {
+                    const secretId = secret._id || secret.id;
 
-                    <p className="capitalize">
-                      {secret.type}
-                    </p>
+                    return (
+                      <div
+                        key={secretId}
+                        className="grid min-h-[68px] grid-cols-[1.4fr_1fr_1fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                      >
+                        <p className="truncate font-semibold text-white" title={secret.title}>
+                          {secret.title}
+                        </p>
 
-                    <p>
-                      {new Date(secret.createdAt).toLocaleString()}
-                    </p>
+                        <p className="text-center text-slate-300">
+                          {getSecretSourceLabel(secret)}
+                        </p>
 
-                    <button
-                      onClick={() => navigate("/secrets")}
-                      className="text-left font-semibold text-cyan-200 transition hover:text-cyan-100"
-                    >
-                      View
-                    </button>
-                  </div>
-                ))}
+                        <div className="flex justify-center">
+                          <SecretActionButtons
+                            loading={actionLoading}
+                            onDelete={() => setSecretToDelete(secret)}
+                            onEdit={() => editSecret(secretId)}
+                            onView={() => viewSecret(secretId)}
+                            secretId={secretId}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -236,7 +376,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
+          <div className="flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] shadow-2xl shadow-black/25 backdrop-blur-2xl">
             <div className="border-b border-white/10 p-5">
               <h2 className="text-2xl font-black text-white">
                 Recent Links
@@ -246,59 +386,51 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[640px]">
-                <div className="grid grid-cols-[2.5fr_1.4fr_2fr_0.8fr] gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
+            <div className="flex-1 overflow-x-auto">
+              <div className="flex h-full min-w-[560px] flex-col">
+                <div className="grid grid-cols-[1.4fr_1fr_0.8fr] items-center gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-5 py-3 text-sm font-bold text-cyan-100">
                   <p>Link Title</p>
-                  <p>Status</p>
-                  <p>Expires</p>
-                  <p>Reads</p>
+                  <p className="text-center">Status</p>
+                  <p className="text-center">Reads</p>
                 </div>
 
-                {loading && (
-                  <div className="px-5 py-4 text-sm text-slate-400">
-                    Loading recent links...
-                  </div>
-                )}
-
-                {!loading && !error && pagedLinks.length === 0 && (
-                  <div className="px-5 py-4 text-sm text-slate-400">
-                    No secure links created yet.
-                  </div>
-                )}
-
-                {!loading && !error && pagedLinks.map((link) => {
-                  const isExpired = new Date(link.expiresAt) <= new Date();
-                  const isOpened = link.readCount > 0;
-                  const status = isExpired
-                    ? "Expired"
-                    : isOpened
-                      ? "Opened"
-                      : "Active";
-
-                  return (
-                    <div
-                      key={link.token}
-                      className="grid grid-cols-[2.5fr_1.4fr_2fr_0.8fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
-                    >
-                      <p className="font-semibold text-white">
-                        {link.title}
-                      </p>
-
-                      <p className="font-semibold text-cyan-100">
-                        {status}
-                      </p>
-
-                      <p>
-                        {new Date(link.expiresAt).toLocaleString()}
-                      </p>
-
-                      <p>
-                        {link.readCount}
-                      </p>
+                <div className="min-h-[340px] flex-1">
+                  {loading && (
+                    <div className="px-5 py-5 text-sm text-slate-400">
+                      Loading recent links...
                     </div>
-                  );
-                })}
+                  )}
+
+                  {!loading && !error && pagedLinks.length === 0 && (
+                    <div className="px-5 py-5 text-sm text-slate-400">
+                      No secure links created yet.
+                    </div>
+                  )}
+
+                  {!loading && !error && pagedLinks.map((link) => {
+                    const isExpired = new Date(link.expiresAt) <= new Date();
+                    const status = isExpired ? "Expired" : "Active";
+
+                    return (
+                      <div
+                        key={link.token}
+                        className="grid min-h-[68px] grid-cols-[1.4fr_1fr_0.8fr] items-center gap-4 border-b border-white/10 px-5 py-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                      >
+                        <p className="truncate font-semibold text-white" title={link.title}>
+                          {link.title}
+                        </p>
+
+                        <p className={`text-center font-semibold ${isExpired ? "text-red-300" : "text-emerald-200"}`}>
+                          {status}
+                        </p>
+
+                        <p className="text-center tabular-nums">
+                          {link.readCount}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

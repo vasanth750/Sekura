@@ -169,6 +169,7 @@ router.post("/:token/submit", async (req, res) => {
         contentType: "text/plain",
         byteLength: Buffer.byteLength(value, "utf8"),
         encryptionVersion: 1,
+        source: "request",
       },
     });
 
@@ -184,6 +185,7 @@ router.post("/:token/submit", async (req, res) => {
         id: secret._id,
         title: secret.title,
         type: secret.type,
+        metadata: secret.metadata,
         createdAt: secret.createdAt,
       },
     });

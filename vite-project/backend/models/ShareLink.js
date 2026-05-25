@@ -88,7 +88,7 @@ const shareLinkSchema = new mongoose.Schema(
 
     burnAfterReading: {
       type: Boolean,
-      default: true,
+      default: false,
     },
 
     passwordProtected: {

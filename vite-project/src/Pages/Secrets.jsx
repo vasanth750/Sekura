@@ -1,57 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Eye, KeyRound, Link2, Plus, Search, ShieldCheck, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, KeyRound, Link2, Plus, Search, ShieldCheck } from "lucide-react";
 import AddSecret from "../popup-page/addSecret";
 import api from "../api";
+import {
+  DeleteSecretDialog,
+  EditSecretDialog,
+  SecretActionButtons,
+  SecretViewerDialog,
+} from "../components/secrets/SecretDialogs";
 
-function DeleteSecretDialog({ loading, onCancel, onConfirm, secret }) {
-  if (!secret) {
-    return null;
-  }
+const PAGE_SIZE = 8;
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
-      <div className="w-full max-w-md rounded-2xl border border-red-300/20 bg-slate-950 p-6 shadow-2xl shadow-red-950/30">
-        <div className="flex items-start gap-4">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-300/25 bg-red-500/10 text-red-200">
-            <AlertTriangle className="h-6 w-6" aria-hidden="true" />
-          </span>
-          <div>
-            <h2 className="text-xl font-black text-white">
-              Delete secret?
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              This will permanently delete{" "}
-              <span className="font-semibold text-slate-100">
-                {secret.title}
-              </span>
-              .
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="min-h-11 rounded-xl border border-white/10 bg-white/[0.07] px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={loading}
-            className="min-h-11 rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white shadow-xl shadow-red-500/20 transition hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Deleting..." : "Delete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+const getSecretSourceLabel = (secret) =>
+  secret?.metadata?.source === "request" ? "Requested Secret" : "Your Secret";
 
 export default function Secrets() {
   const navigate = useNavigate();
@@ -62,6 +24,9 @@ export default function Secrets() {
   const [viewedSecret, setViewedSecret] = useState(null);
   const [actionLoading, setActionLoading] = useState("");
   const [secretToDelete, setSecretToDelete] = useState(null);
+  const [secretToEdit, setSecretToEdit] = useState(null);
+  const [editError, setEditError] = useState("");
+  const [secretPage, setSecretPage] = useState(0);
 
   const fetchSecrets = async () => {
     try {
@@ -80,6 +45,7 @@ export default function Secrets() {
 
   const addSecretToList = (secret) => {
     setSecrets((currentSecrets) => [secret, ...currentSecrets]);
+    setSecretPage(0);
   };
 
   const viewSecret = async (secretId) => {
@@ -115,6 +81,9 @@ export default function Secrets() {
       setSecrets((currentSecrets) =>
         currentSecrets.filter((secret) => (secret._id || secret.id) !== secretId)
       );
+      setSecretPage((page) =>
+        Math.min(page, Math.max(0, Math.ceil((secrets.length - 1) / PAGE_SIZE) - 1))
+      );
 
       if ((viewedSecret?._id || viewedSecret?.id) === secretId) {
         setViewedSecret(null);
@@ -128,11 +97,70 @@ export default function Secrets() {
     }
   };
 
+  const editSecret = async (secretId) => {
+    try {
+      setError("");
+      setEditError("");
+      setActionLoading(secretId);
+
+      const response = await api.get(
+        `/api/encrypted-secrets/${secretId}/decrypt`
+      );
+
+      setSecretToEdit(response.data.secret);
+    } catch (error) {
+      setError(error.response?.data?.message || "Unable to load secret for editing");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
+  const saveEditedSecret = async ({ title, value }) => {
+    if (!secretToEdit) {
+      return;
+    }
+
+    const secretId = secretToEdit._id || secretToEdit.id;
+
+    try {
+      setEditError("");
+      setActionLoading(secretId);
+
+      const response = await api.put(`/api/encrypted-secrets/${secretId}`, {
+        title,
+        value,
+        type: secretToEdit.type || "secret",
+      });
+
+      setSecrets((currentSecrets) =>
+        currentSecrets.map((secret) =>
+          (secret._id || secret.id) === secretId ? response.data.secret : secret
+        )
+      );
+
+      if ((viewedSecret?._id || viewedSecret?.id) === secretId) {
+        setViewedSecret(null);
+      }
+
+      setSecretToEdit(null);
+    } catch (error) {
+      setEditError(error.response?.data?.message || "Unable to update secret");
+    } finally {
+      setActionLoading("");
+    }
+  };
+
   useEffect(() => {
     const timeoutId = window.setTimeout(fetchSecrets, 0);
 
     return () => window.clearTimeout(timeoutId);
   }, []);
+
+  const secretPageCount = Math.max(1, Math.ceil(secrets.length / PAGE_SIZE));
+  const pagedSecrets = secrets.slice(
+    secretPage * PAGE_SIZE,
+    secretPage * PAGE_SIZE + PAGE_SIZE
+  );
 
   return (
     <div className="relative isolate min-h-full overflow-hidden bg-slate-950 px-4 py-8 text-slate-100 md:px-8 lg:px-20">
@@ -153,42 +181,21 @@ export default function Secrets() {
         secret={secretToDelete}
       />
 
-      {viewedSecret && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-[560px] rounded-2xl border border-white/10 bg-slate-950/95 p-6 shadow-2xl shadow-black/40">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-black text-white">
-                {viewedSecret.title}
-              </h2>
+      <SecretViewerDialog
+        onClose={() => setViewedSecret(null)}
+        secret={viewedSecret}
+      />
 
-              <button
-                onClick={() => setViewedSecret(null)}
-                className="rounded-xl border border-white/10 bg-white/[0.06] p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close decrypted secret"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <label className="mt-5 block text-sm font-semibold text-slate-200">
-              Decrypted Secret
-            </label>
-
-            <textarea
-              readOnly
-              value={viewedSecret.value}
-              className="mt-2 min-h-[140px] w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none"
-            />
-
-            <button
-              onClick={() => setViewedSecret(null)}
-              className="mt-5 w-full rounded-xl bg-cyan-300 py-3 font-bold text-slate-950 transition hover:bg-cyan-200"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <EditSecretDialog
+        error={editError}
+        loading={Boolean(actionLoading)}
+        onCancel={() => {
+          setSecretToEdit(null);
+          setEditError("");
+        }}
+        onSave={saveEditedSecret}
+        secret={secretToEdit}
+      />
 
       <div className="mx-auto w-full max-w-7xl">
         <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/30 backdrop-blur-2xl lg:flex-row lg:items-center lg:justify-between lg:p-7">
@@ -250,9 +257,11 @@ export default function Secrets() {
           </div>
 
           <div className="overflow-x-auto">
-            <div className="grid min-w-[680px] grid-cols-[2fr_1.4fr_1.2fr] border-b border-cyan-300/20 bg-cyan-300/10 text-sm font-bold text-cyan-100">
+            <div className="grid min-w-[980px] grid-cols-[1.35fr_0.9fr_1.2fr_1.2fr_1fr] items-center gap-4 border-b border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm font-bold text-cyan-100">
               <div className="p-4">Secret Name</div>
-              <div className="p-4">Added</div>
+              <div className="p-4 text-center">Type</div>
+              <div className="p-4 text-center">Created</div>
+              <div className="p-4 text-center">Updated</div>
               <div className="p-4 text-center">Actions</div>
             </div>
 
@@ -274,47 +283,73 @@ export default function Secrets() {
               </div>
             )}
 
-            {!loading && !error && secrets.map((secret) => {
+            {!loading && !error && pagedSecrets.map((secret) => {
               const secretId = secret._id || secret.id;
 
               return (
                 <div
                   key={secretId}
-                  className="grid min-w-[680px] grid-cols-[2fr_1.4fr_1.2fr] items-center border-b border-white/10 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
+                  className="grid min-w-[980px] grid-cols-[1.35fr_0.9fr_1.2fr_1.2fr_1fr] items-center gap-4 border-b border-white/10 px-4 text-sm text-slate-300 transition last:border-b-0 hover:bg-white/[0.05]"
                 >
-                  <div className="flex items-center gap-3 p-4 font-semibold text-white">
+                  <div className="flex min-w-0 items-center gap-3 p-4 font-semibold text-white">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-300/10 text-cyan-200">
                       <KeyRound className="h-4 w-4" />
                     </span>
-                    {secret.title}
+                    <span className="truncate" title={secret.title}>
+                      {secret.title}
+                    </span>
                   </div>
 
-                  <div className="p-4">
+                  <div className="p-4 text-center">
+                    {getSecretSourceLabel(secret)}
+                  </div>
+
+                  <div className="whitespace-nowrap p-4 text-center text-slate-400">
                     {new Date(secret.createdAt).toLocaleString()}
                   </div>
 
-                  <div className="flex justify-center gap-3 p-4">
-                    <button
-                      onClick={() => viewSecret(secretId)}
-                      disabled={actionLoading === secretId}
-                      className="inline-flex items-center gap-1 font-semibold text-cyan-200 transition hover:text-cyan-100 disabled:text-cyan-300/40"
-                    >
-                      <Eye className="h-4 w-4" />
-                      {actionLoading === secretId ? "Loading" : "View"}
-                    </button>
+                  <div className="whitespace-nowrap p-4 text-center text-slate-400">
+                    {new Date(secret.updatedAt || secret.createdAt).toLocaleString()}
+                  </div>
 
-                    <button
-                      onClick={() => setSecretToDelete(secret)}
-                      disabled={actionLoading === secretId}
-                      className="inline-flex items-center gap-1 font-semibold text-red-300 transition hover:text-red-200 disabled:text-red-300/40"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </button>
+                  <div className="p-4">
+                    <SecretActionButtons
+                      loading={actionLoading}
+                      onDelete={() => setSecretToDelete(secret)}
+                      onEdit={() => editSecret(secretId)}
+                      onView={() => viewSecret(secretId)}
+                      secretId={secretId}
+                    />
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-white/10 px-5 py-4 text-sm text-slate-300">
+            <span>
+              Page {secretPage + 1} of {secretPageCount}
+            </span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSecretPage((page) => Math.max(0, page - 1))}
+                disabled={secretPage === 0}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Previous secrets page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSecretPage((page) => Math.min(secretPageCount - 1, page + 1))}
+                disabled={secretPage >= secretPageCount - 1}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label="Next secrets page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
