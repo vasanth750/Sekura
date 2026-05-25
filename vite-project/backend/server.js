@@ -3,14 +3,18 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 
 import auth from "./middleware/auth.js";
 
 import connectDB from './config/db.js';
-import transporter from './config/mail.js';
 
 import User from './user.js';
+import authRouter from "./routes/auth.js";
+import {
+    clearEmailVerification,
+    isEmailRecentlyVerified,
+    normalizeEmail
+} from "./controllers/authController.js";
 import encryptedSecretsRouter from "./routes/encryptedSecrets.js";
 import secretRequestsRouter from "./routes/secretRequests.js";
 import shareLinksRouter from "./routes/shareLinks.js";
@@ -40,33 +44,8 @@ app.use(express.json({
 app.use("/api/encrypted-secrets", encryptedSecretsRouter);
 app.use("/api/secret-requests", secretRequestsRouter);
 app.use("/api/share-links", shareLinksRouter);
-
-// ======================================
-// OTP STORE
-// ======================================
-
-const otpStore = new Map();
-
-function normalizeEmail(email) {
-    return typeof email === "string" ? email.trim().toLowerCase() : "";
-}
-
-function hashOtp(email, otp) {
-    return crypto
-        .createHash("sha256")
-        .update(`${email}:${otp}:${process.env.JWT_SECRET}`)
-        .digest("hex");
-}
-
-function secureCompareHash(left, right) {
-    const leftBuffer = Buffer.from(left);
-    const rightBuffer = Buffer.from(right);
-
-    return (
-        leftBuffer.length === rightBuffer.length &&
-        crypto.timingSafeEqual(leftBuffer, rightBuffer)
-    );
-}
+app.use("/api/auth", authRouter);
+app.use("/", authRouter);
 
 // ======================================
 // HOME ROUTE
@@ -75,258 +54,6 @@ function secureCompareHash(left, right) {
 app.get('/', (req, res) => {
 
     res.send("Sekura Backend Running");
-
-});
-
-// ======================================
-// SEND OTP API
-// ======================================
-
-app.post("/send-otp", async (req, res) => {
-
-    try {
-
-        const {
-            Email
-        } = req.body;
-        const normalizedEmail = normalizeEmail(Email);
-
-
-        // =========================
-        // EMAIL VALIDATION
-        // =========================
-
-        const emailPattern =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailPattern.test(normalizedEmail)) {
-
-            return res.status(400).json({
-
-                message:
-                    "Invalid Email Address"
-
-            });
-
-        }
-
-
-
-        // =========================
-        // CHECK EXISTING USER
-        // =========================
-
-        const existingUser =
-            await User.findOne({
-
-                email: normalizedEmail
-
-            });
-
-        if (existingUser) {
-
-            return res.status(409).json({
-
-                message:
-                    "Email already registered"
-
-            });
-
-        }
-
-        // =========================
-        // GENERATE OTP
-        // =========================
-
-        const verificationCode =
-            crypto.randomInt(100000, 1000000).toString();
-
-        // =========================
-        // STORE OTP
-        // =========================
-
-        otpStore.set(normalizedEmail, {
-
-            otpHash: hashOtp(normalizedEmail, verificationCode),
-
-            expires:
-                Date.now() + 5 * 60 * 1000,
-
-            verified: false,
-
-            attempts: 0
-
-        });
-
-        // =========================
-        // SEND EMAIL
-        // =========================
-
-        await transporter.sendMail({
-
-            from:
-                `"Sekura" <${process.env.EMAIL_USER}>`,
-
-            to: normalizedEmail,
-
-            replyTo:
-                process.env.EMAIL_USER,
-
-            subject:
-                "Sekura Verification Code",
-
-            html: `
-
-                <div style="font-family: Arial; padding: 20px;">
-
-                    <h2>Sekura Email Verification</h2>
-
-                    <p>Your OTP for Signup is:</p>
-
-                    <h1 style="letter-spacing: 5px; color: #06b6d4;">
-                        ${verificationCode}
-                    </h1>
-
-                    <p>
-                        This OTP is valid for 5 minutes.
-                    </p>
-
-                </div>
-
-            `
-
-        });
-
-        res.status(200).json({
-
-            message:
-                "OTP Sent Successfully"
-
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-
-            message:
-                "Server Error"
-
-        });
-
-    }
-
-});
-
-// ======================================
-// VERIFY OTP API
-// ======================================
-
-app.post("/verify-otp", async (req, res) => {
-
-    try {
-
-        const {
-            Email,
-            OTP
-        } = req.body;
-        const normalizedEmail = normalizeEmail(Email);
-        const otpEntry = otpStore.get(normalizedEmail);
-
-        // =========================
-        // OTP EXIST?
-        // =========================
-
-        if (!otpEntry) {
-
-            return res.status(400).json({
-
-                message:
-                    "OTP not found"
-
-            });
-
-        }
-
-        // =========================
-        // OTP EXPIRED
-        // =========================
-
-        if (
-            otpEntry.expires
-            < Date.now()
-        ) {
-            otpStore.delete(normalizedEmail);
-
-            return res.status(400).json({
-
-                message:
-                    "OTP Expired"
-
-            });
-
-        }
-
-        // =========================
-        // OTP VALIDATION
-        // =========================
-
-        if (otpEntry.attempts >= 5) {
-            otpStore.delete(normalizedEmail);
-
-            return res.status(429).json({
-
-                message:
-                    "Too many OTP attempts. Request a new code"
-
-            });
-
-        }
-
-        const otpHash = hashOtp(normalizedEmail, String(OTP || ""));
-
-        if (!secureCompareHash(otpEntry.otpHash, otpHash)) {
-            otpEntry.attempts += 1;
-
-            return res.status(400).json({
-
-                message:
-                    "Invalid OTP"
-
-            });
-
-        }
-
-        // =========================
-        // VERIFIED
-        // =========================
-
-        otpEntry.verified = true;
-
-        res.status(200).json({
-
-            message:
-                "OTP Verified"
-
-        });
-
-    }
-
-    catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-
-            message:
-                "Server Error"
-
-        });
-
-    }
 
 });
 
@@ -345,16 +72,12 @@ app.post("/newUser", async (req, res) => {
             RePassword
         } = req.body;
         const normalizedEmail = normalizeEmail(Email);
-        const otpEntry = otpStore.get(normalizedEmail);
 
         // =========================
         // EMAIL VERIFIED?
         // =========================
 
-        if (
-            !otpEntry ||
-            !otpEntry.verified
-        ) {
+        if (!isEmailRecentlyVerified(normalizedEmail)) {
 
             return res.status(401).json({
 
@@ -444,10 +167,10 @@ app.post("/newUser", async (req, res) => {
         await user.save();
 
         // =========================
-        // REMOVE OTP
+        // REMOVE EMAIL VERIFICATION
         // =========================
 
-        otpStore.delete(normalizedEmail);
+        clearEmailVerification(normalizedEmail);
 
         // =========================
         // GENERATE JWT

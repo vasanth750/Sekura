@@ -10,6 +10,7 @@ const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
 const tokenPattern = /^[A-Za-z0-9_-]{16,96}$/;
 const maxLinkLifetimeMs = 7 * 24 * 60 * 60 * 1000;
 const maxEncryptedPayloadBytes = 200000;
+let shareLinkIndexesChecked = false;
 
 function isBase64Url(value) {
   return typeof value === "string" && base64UrlPattern.test(value);
@@ -37,6 +38,22 @@ function validateEncryptedPayload(payload) {
   }
 
   return "";
+}
+
+async function ensureShareLinkDashboardIndexes() {
+  if (shareLinkIndexesChecked) {
+    return;
+  }
+
+  try {
+    await ShareLink.collection.dropIndex("expiresAt_1");
+  } catch (error) {
+    if (error.codeName !== "IndexNotFound" && error.code !== 27) {
+      console.log(error);
+    }
+  }
+
+  shareLinkIndexesChecked = true;
 }
 
 // ======================================
@@ -137,6 +154,114 @@ router.post("/", auth, async (req, res) => {
 });
 
 // ======================================
+// CURRENT USER SHARE LINK DASHBOARD STATS
+// ======================================
+
+router.get("/stats/summary", auth, async (req, res) => {
+  try {
+    await ensureShareLinkDashboardIndexes();
+
+    const now = new Date();
+    const expiringSoonAt = new Date(now.getTime() + 2 * 60 * 1000);
+    const ownerFilter = {
+      owner: req.user.id,
+    };
+
+    const activeFilter = {
+      ...ownerFilter,
+      expiresAt: {
+        $gt: now,
+      },
+      readCount: 0,
+    };
+
+    const [totalLinks, activeLinks, expiringSoon, recentLinks] = await Promise.all([
+      ShareLink.countDocuments(ownerFilter),
+      ShareLink.countDocuments(activeFilter),
+      ShareLink.countDocuments({
+        ...activeFilter,
+        expiresAt: {
+          $gt: now,
+          $lte: expiringSoonAt,
+        },
+      }),
+      ShareLink.find(ownerFilter)
+        .select("title token expiresAt burnAfterReading passwordProtected readCount openedAt createdAt")
+        .sort({
+          createdAt: -1,
+        }),
+    ]);
+
+    return res.status(200).json({
+      totalLinks,
+      activeLinks,
+      expiringSoon,
+      recentLinks,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Unable to load secure link stats",
+    });
+  }
+});
+
+// ======================================
+// MARK SHARE LINK AS REVEALED
+// ======================================
+
+router.post("/:token/open", async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!tokenPattern.test(token)) {
+      return res.status(400).json({
+        message: "Invalid secure link",
+      });
+    }
+
+    const now = new Date();
+    const shareLink = await ShareLink.findOne({
+      token,
+    }).select("expiresAt readCount");
+
+    if (!shareLink) {
+      return res.status(404).json({
+        message: "Secure link not found",
+      });
+    }
+
+    if (shareLink.expiresAt <= now) {
+      return res.status(410).json({
+        message: "This secure link has expired",
+      });
+    }
+
+    if (shareLink.readCount > 0) {
+      return res.status(410).json({
+        message: "This secure link has already been opened",
+      });
+    }
+
+    shareLink.readCount += 1;
+    shareLink.openedAt = now;
+
+    await shareLink.save();
+
+    return res.status(200).json({
+      message: "Secure link marked as opened",
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Unable to mark secure link as opened",
+    });
+  }
+});
+
+// ======================================
 // PUBLIC READ OF ENCRYPTED SHARE PAYLOAD
 // ======================================
 
@@ -151,56 +276,25 @@ router.get("/:token", async (req, res) => {
     }
 
     const now = new Date();
-    const shareLink = await ShareLink.findOneAndUpdate(
-      {
-        token,
-        expiresAt: {
-          $gt: now,
-        },
-        $or: [
-          {
-            burnAfterReading: false,
-          },
-          {
-            readCount: 0,
-          },
-        ],
-      },
-      {
-        $inc: {
-          readCount: 1,
-        },
-        $set: {
-          openedAt: now,
-        },
-      }
-    );
+    const shareLink = await ShareLink.findOne({
+      token,
+    });
 
     if (!shareLink) {
-      const existingLink = await ShareLink.findOne({ token }).select(
-        "expiresAt burnAfterReading readCount"
-      );
+      return res.status(404).json({
+        message: "Secure link not found",
+      });
+    }
 
-      if (!existingLink) {
-        return res.status(404).json({
-          message: "Secure link not found",
-        });
-      }
-
-      if (existingLink.expiresAt <= now) {
-        return res.status(410).json({
-          message: "This secure link has expired",
-        });
-      }
-
-      if (existingLink.burnAfterReading && existingLink.readCount > 0) {
-        return res.status(410).json({
-          message: "This secure link has already been opened",
-        });
-      }
-
+    if (shareLink.expiresAt <= now) {
       return res.status(410).json({
-        message: "This secure link is no longer available",
+        message: "This secure link has expired",
+      });
+    }
+
+    if (shareLink.readCount > 0) {
+      return res.status(410).json({
+        message: "This secure link has already been opened",
       });
     }
 

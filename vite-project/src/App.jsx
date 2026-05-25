@@ -39,7 +39,7 @@ function Layout() {
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-950 text-slate-100">
       {!hideHeaderRoutes.includes(location.pathname) && <Header />}
 
-      <main className="flex-1 overflow-x-hidden">
+      <main className="relative z-10 flex-1 overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -93,7 +93,11 @@ function Layout() {
         </Routes>
       </main>
 
-      {!hideFooterRoutes.includes(location.pathname) && <Footer />}
+      {!hideFooterRoutes.includes(location.pathname) && (
+        <div className="relative z-0">
+          <Footer />
+        </div>
+      )}
     </div>
   );
 }
