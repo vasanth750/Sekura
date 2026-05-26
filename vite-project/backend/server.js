@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import auth from "./middleware/auth.js";
 
@@ -20,7 +22,12 @@ import secretRequestsRouter from "./routes/secretRequests.js";
 import shareLinksRouter from "./routes/shareLinks.js";
 import liveSessionsRouter from "./routes/liveSessions.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({
+    path: path.join(__dirname, ".env")
+});
 
 connectDB();
 

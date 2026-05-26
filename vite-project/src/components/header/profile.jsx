@@ -124,7 +124,7 @@ function ProfileDrawer({
 export default function ProfileButton({ profileOpen, setProfileOpen, user, logout }) {
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(localStorage.getItem("profileImage") || defaultProfile);
-  const [portalReady, setPortalReady] = useState(false);
+  const portalReady = typeof document !== "undefined";
 
   useEffect(() => {
     document.documentElement.classList.toggle("sekura-profile-open", profileOpen);
@@ -135,10 +135,6 @@ export default function ProfileButton({ profileOpen, setProfileOpen, user, logou
       document.body.style.overflow = "";
     };
   }, [profileOpen]);
-
-  useEffect(() => {
-    setPortalReady(true);
-  }, []);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];

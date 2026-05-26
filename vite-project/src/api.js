@@ -9,8 +9,11 @@ api.interceptors.request.use(
   (config) => {
 
     const token = sessionStorage.getItem("token");
+    const hasAuthorizationHeader =
+      Boolean(config.headers?.Authorization) ||
+      Boolean(config.headers?.authorization);
 
-    if (token) {
+    if (token && !hasAuthorizationHeader) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
