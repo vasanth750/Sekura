@@ -1,9 +1,23 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import argon2 from 'argon2';
+import jwt from 'jsonwebtoken';
+
+import auth from "./middleware/auth.js";
 
 import connectDB from './config/db.js';
+
 import User from './user.js';
+import authRouter from "./routes/auth.js";
+import {
+    clearEmailVerification,
+    isEmailRecentlyVerified,
+    normalizeEmail
+} from "./controllers/authController.js";
+import encryptedSecretsRouter from "./routes/encryptedSecrets.js";
+import secretRequestsRouter from "./routes/secretRequests.js";
+import shareLinksRouter from "./routes/shareLinks.js";
 
 dotenv.config();
 
@@ -11,10 +25,27 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+const corsOrigins = process.env.CLIENT_ORIGIN
+    ? process.env.CLIENT_ORIGIN.split(",").map((origin) => origin.trim())
+    : true;
 
-app.use(express.json());
+app.use(cors({
+    origin: corsOrigins
+}));
 
+app.use(express.json({
+    limit: "256kb"
+}));
+
+// ======================================
+// API ROUTES
+// ======================================
+
+app.use("/api/encrypted-secrets", encryptedSecretsRouter);
+app.use("/api/secret-requests", secretRequestsRouter);
+app.use("/api/share-links", shareLinksRouter);
+app.use("/api/auth", authRouter);
+app.use("/", authRouter);
 
 // ======================================
 // HOME ROUTE
@@ -26,6 +57,8 @@ app.get('/', (req, res) => {
 
 });
 
+const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
 // ======================================
 // SIGNUP API
@@ -35,52 +68,145 @@ app.post("/newUser", async (req, res) => {
 
     try {
 
-        console.log(req.body);
-
-        // Get frontend data
         const {
             Name,
             Email,
-            Mobile,
-            Password
+            Password,
+            RePassword
         } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
 
-        // Check existing user
-        const existingUser =
-            await User.findOne({
+        // =========================
+        // EMAIL VERIFIED?
+        // =========================
 
-                email: Email
+        if (!isEmailRecentlyVerified(normalizedEmail)) {
 
-            });
+            return res.status(401).json({
 
-        // User already exists
-        if (existingUser) {
-
-            return res.status(409).json({
-
-                message: "User already Exists"
+                message:
+                    "Email not verified"
 
             });
 
         }
 
-        // Create new user
+        // =========================
+        // NAME VALIDATION
+        // =========================
+
+        if (
+            !Name ||
+            Name.length < 3
+        ) {
+
+            return res.status(400).json({
+
+                message:
+                    "Name must contain minimum 3 characters"
+
+            });
+
+        }
+
+        // =========================
+        // PASSWORD MATCH VALIDATION
+        // =========================
+
+        if (Password !== RePassword) {
+
+            return res.status(400).json({
+
+                message:
+                    "Passwords do not match"
+
+            });
+
+        }
+
+        // =========================
+        // PASSWORD VALIDATION
+        // =========================
+
+        if (
+            !passwordPattern.test(Password)
+        ) {
+
+            return res.status(400).json({
+
+                message:
+                    "Password must contain uppercase, lowercase, number and special character"
+
+            });
+
+        }
+
+        // =========================
+        // HASH PASSWORD
+        // =========================
+
+        const hashedPassword =
+            await argon2.hash(Password);
+
+        // =========================
+        // CREATE USER
+        // =========================
+
         const user = new User({
 
             name: Name,
-            email: Email,
-            mobile: Mobile,
-            password: Password
+
+            email: normalizedEmail,
+
+            password: hashedPassword,
+
+            isVerified: true
 
         });
 
-        // Save user
         await user.save();
 
-        // Success response
+        // =========================
+        // REMOVE EMAIL VERIFICATION
+        // =========================
+
+        clearEmailVerification(normalizedEmail);
+
+        // =========================
+        // GENERATE JWT
+        // =========================
+
+        const token = jwt.sign(
+
+            {
+                id: user._id,
+                email: user.email
+            },
+
+            process.env.JWT_SECRET,
+
+            {
+                expiresIn: "1d"
+            }
+
+        );
+
         res.status(201).json({
 
-            message: "Signup Successful"
+            message:
+                "Signup Successful",
+
+            token,
+
+            user: {
+
+                id: user._id,
+
+                name: user.name,
+
+                email: user.email
+
+            }
 
         });
 
@@ -92,7 +218,8 @@ app.post("/newUser", async (req, res) => {
 
         res.status(500).json({
 
-            message: "Server Error"
+            message:
+                "Server Error"
 
         });
 
@@ -100,6 +227,102 @@ app.post("/newUser", async (req, res) => {
 
 });
 
+// ======================================
+// RESET PASSWORD API
+// ======================================
+
+app.post("/reset-password", async (req, res) => {
+
+    try {
+
+        const {
+            Email,
+            Password,
+            RePassword
+        } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
+
+        if (!isEmailRecentlyVerified(normalizedEmail)) {
+
+            return res.status(401).json({
+
+                message:
+                    "Email not verified"
+
+            });
+
+        }
+
+        if (Password !== RePassword) {
+
+            return res.status(400).json({
+
+                message:
+                    "Passwords do not match"
+
+            });
+
+        }
+
+        if (!passwordPattern.test(Password)) {
+
+            return res.status(400).json({
+
+                message:
+                    "Password must contain uppercase, lowercase, number and special character"
+
+            });
+
+        }
+
+        const user = await User.findOne({
+
+            email: normalizedEmail
+
+        });
+
+        if (!user) {
+
+            clearEmailVerification(normalizedEmail);
+
+            return res.status(404).json({
+
+                message:
+                    "Account not found"
+
+            });
+
+        }
+
+        user.password = await argon2.hash(Password);
+
+        await user.save();
+
+        clearEmailVerification(normalizedEmail);
+
+        return res.status(200).json({
+
+            message:
+                "Password reset successful"
+
+        });
+
+    }
+
+    catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+
+            message:
+                "Server Error"
+
+        });
+
+    }
+
+});
 
 // ======================================
 // LOGIN API
@@ -109,23 +332,23 @@ app.post("/login", async (req, res) => {
 
     try {
 
-        // Get login data
         const {
             Email,
             Password
         } = req.body;
+        const normalizedEmail = normalizeEmail(Email);
 
-        console.log(req.body);
+        // =========================
+        // FIND USER
+        // =========================
 
-        // Find user by email
         const userValidation =
             await User.findOne({
 
-                email: Email
- 
+                email: normalizedEmail
+
             });
 
-        // User not found
         if (!userValidation) {
 
             return res.status(404).json({
@@ -137,10 +360,26 @@ app.post("/login", async (req, res) => {
 
         }
 
-        // Password validation
-        if (
-            userValidation.password !== Password
-        ) {
+        // =========================
+        // EMAIL VERIFIED?
+        // =========================
+
+       
+
+        // =========================
+        // VERIFY PASSWORD
+        // =========================
+
+        const validPassword =
+            await argon2.verify(
+
+                userValidation.password,
+
+                Password
+
+            );
+
+        if (!validPassword) {
 
             return res.status(401).json({
 
@@ -151,10 +390,41 @@ app.post("/login", async (req, res) => {
 
         }
 
-        // Login success
+        // =========================
+        // GENERATE JWT
+        // =========================
+
+        const token = jwt.sign(
+
+            {
+                id: userValidation._id,
+                email: userValidation.email
+            },
+
+            process.env.JWT_SECRET,
+
+            {
+                expiresIn: "1d"
+            }
+
+        );
+
         res.status(200).json({
 
-            message: "Login Successful"
+            message:
+                "Login Successful",
+
+            token,
+
+            user: {
+
+                id: userValidation._id,
+
+                name: userValidation.name,
+
+                email: userValidation.email
+
+            }
 
         });
 
@@ -166,7 +436,8 @@ app.post("/login", async (req, res) => {
 
         res.status(500).json({
 
-            message: "Server Error"
+            message:
+                "Server Error"
 
         });
 
@@ -174,6 +445,22 @@ app.post("/login", async (req, res) => {
 
 });
 
+// ======================================
+// PROTECTED ROUTE
+// ======================================
+
+app.get("/secrets", auth, (req, res) => {
+
+    res.status(200).json({
+
+        message:
+            "Token received successfully",
+
+        user: req.user,
+
+    });
+
+});
 
 // ======================================
 // SERVER
@@ -184,7 +471,9 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
 
     console.log(
+
         `Server running on port ${PORT}`
+
     );
 
 });
