@@ -18,6 +18,7 @@ import {
 import encryptedSecretsRouter from "./routes/encryptedSecrets.js";
 import secretRequestsRouter from "./routes/secretRequests.js";
 import shareLinksRouter from "./routes/shareLinks.js";
+import liveSessionsRouter from "./routes/liveSessions.js";
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use(express.json({
 app.use("/api/encrypted-secrets", encryptedSecretsRouter);
 app.use("/api/secret-requests", secretRequestsRouter);
 app.use("/api/share-links", shareLinksRouter);
+app.use("/api/live-sessions", liveSessionsRouter);
 app.use("/api/auth", authRouter);
 app.use("/", authRouter);
 

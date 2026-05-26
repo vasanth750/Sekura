@@ -14,6 +14,7 @@ import Secrets from "./Pages/Secrets.jsx";
 import CreateRequest from "./Pages/Request.jsx";
 import RequestViewr from "./Pages/RequestViewing.jsx";
 import CreateSecretLinkPage from "./Pages/CreateSecretLink.jsx";
+import LiveSessionJoin from "./Pages/LiveSessionJoin.jsx";
 
 import Privacy from "./components/footer/Privacy.jsx";
 import Terms from "./components/footer/Terms.jsx";
@@ -35,10 +36,13 @@ function Layout() {
 
   const hideHeaderRoutes = ["/login", "/signup"];
   const hideFooterRoutes = ["/login", "/signup"];
+  const isSessionJoinRoute = location.pathname.startsWith("/session/");
+  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isSessionJoinRoute;
+  const shouldHideFooter = hideFooterRoutes.includes(location.pathname) || isSessionJoinRoute;
 
   return (
     <div className="sekura-app-shell flex min-h-screen flex-col overflow-x-hidden text-slate-950 dark:text-slate-100">
-      {!hideHeaderRoutes.includes(location.pathname) && <Header />}
+      {!shouldHideHeader && <Header />}
 
       <main className="relative z-10 flex-1 overflow-x-hidden">
         <AnimatePresence mode="wait">
@@ -93,6 +97,13 @@ function Layout() {
                 }
               />
 
+              <Route
+                path="/live-session"
+                element={<Navigate to="/create-link" replace />}
+              />
+
+              <Route path="/session/:id" element={<LiveSessionJoin />} />
+
               <Route path="/request/:id" element={<RequestViewr />} />
 
               <Route path="/privacy-policy" element={<Privacy />} />
@@ -105,7 +116,7 @@ function Layout() {
         </AnimatePresence>
       </main>
 
-      {!hideFooterRoutes.includes(location.pathname) && (
+      {!shouldHideFooter && (
         <div className="relative z-0">
           <Footer />
         </div>
