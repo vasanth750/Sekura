@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertTriangle,
+  Download,
   Eye,
+  FileText,
+  Image,
   Pencil,
   Trash2,
   X,
 } from "lucide-react";
+import { downloadDataUrl, formatBytes, isImageType } from "../../lib/attachments";
 
 export function SecretActionButtons({
   disabled,
@@ -58,8 +63,12 @@ export function SecretViewerDialog({ onClose, secret }) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
+  const isFile = secret.type === "file";
+  const fileName = secret.metadata?.originalFileName || secret.title || "sekura-file";
+  const contentType = secret.metadata?.contentType || "application/octet-stream";
+
+  return createPortal(
+    <div className="sekura-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="sekura-panel w-full max-w-[560px] rounded-xl p-6">
         <div className="flex items-center justify-between gap-4">
           <h2 className="sekura-heading text-2xl font-black">
@@ -75,15 +84,56 @@ export function SecretViewerDialog({ onClose, secret }) {
           </button>
         </div>
 
-        <label className="sekura-heading mt-5 block text-sm font-semibold">
-          Decrypted Secret
-        </label>
+        {isFile ? (
+          <div className="mt-5 space-y-4">
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-400/20 dark:bg-green-400/10">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-green-700 dark:bg-white/10 dark:text-green-200">
+                  {isImageType(contentType) ? (
+                    <Image className="h-5 w-5" />
+                  ) : (
+                    <FileText className="h-5 w-5" />
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="sekura-heading truncate font-bold">{fileName}</p>
+                  <p className="sekura-muted text-sm">
+                    {contentType} - {formatBytes(secret.metadata?.byteLength)}
+                  </p>
+                </div>
+              </div>
+            </div>
 
-        <textarea
-          readOnly
-          value={secret.value}
-          className="sekura-input mt-2 min-h-[140px] w-full rounded-lg px-4 py-3 outline-none"
-        />
+            {isImageType(contentType) && (
+              <img
+                src={secret.value}
+                alt={fileName}
+                className="max-h-72 w-full rounded-lg border border-slate-200 object-contain dark:border-white/10"
+              />
+            )}
+
+            <button
+              type="button"
+              onClick={() => downloadDataUrl(secret.value, fileName, contentType)}
+              className="sekura-primary-btn flex w-full items-center justify-center gap-2 rounded-lg py-3 font-bold transition"
+            >
+              <Download className="h-4 w-4" />
+              Download File
+            </button>
+          </div>
+        ) : (
+          <>
+            <label className="sekura-heading mt-5 block text-sm font-semibold">
+              Decrypted Secret
+            </label>
+
+            <textarea
+              readOnly
+              value={secret.value}
+              className="sekura-input mt-2 min-h-[140px] w-full rounded-lg px-4 py-3 outline-none"
+            />
+          </>
+        )}
 
         <button
           onClick={onClose}
@@ -92,7 +142,8 @@ export function SecretViewerDialog({ onClose, secret }) {
           Close
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -101,8 +152,8 @@ export function DeleteSecretDialog({ loading, onCancel, onConfirm, secret }) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+  return createPortal(
+    <div className="sekura-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div className="sekura-panel w-full max-w-md rounded-xl p-6">
         <div className="flex items-start gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-red-300/25 bg-red-500/10 text-red-200">
@@ -141,7 +192,8 @@ export function DeleteSecretDialog({ loading, onCancel, onConfirm, secret }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -178,8 +230,8 @@ function EditSecretForm({
   const [title, setTitle] = useState(secret.title || "");
   const [value, setValue] = useState(secret.value || "");
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm sm:items-center">
+  return createPortal(
+    <div className="sekura-modal-backdrop fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto p-4 sm:items-center">
       <div className="sekura-panel my-4 max-h-[calc(100vh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-xl p-6">
         <div className="mb-6 flex items-center justify-between gap-4">
           <h2 className="sekura-heading text-2xl font-black">
@@ -242,6 +294,7 @@ function EditSecretForm({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -49,6 +49,7 @@ router.post("/", auth, async (req, res) => {
             type = "secret",
             contentType = "text/plain",
             originalFileName,
+            byteLength,
             source = "manual"
         } = req.body;
 
@@ -72,6 +73,10 @@ router.post("/", auth, async (req, res) => {
 
         const aad = `${req.user.id}:${type}`;
         const encrypted = encryptWithNewDek(value, aad);
+        const metadataByteLength =
+            type === "file" && Number.isFinite(Number(byteLength))
+                ? Number(byteLength)
+                : Buffer.byteLength(value, "utf8");
 
         const secret = await EncryptedSecret.create({
             owner: req.user.id,
@@ -82,7 +87,7 @@ router.post("/", auth, async (req, res) => {
             metadata: {
                 contentType,
                 originalFileName,
-                byteLength: Buffer.byteLength(value, "utf8"),
+                byteLength: metadataByteLength,
                 encryptionVersion: 1,
                 source: source === "request" ? "request" : "manual"
             }
@@ -236,7 +241,8 @@ router.put("/:id", auth, async (req, res) => {
             value,
             type = "secret",
             contentType = "text/plain",
-            originalFileName
+            originalFileName,
+            byteLength
         } = req.body;
 
         if (!title || title.trim().length < 2) {
@@ -270,6 +276,10 @@ router.put("/:id", auth, async (req, res) => {
 
         const aad = `${req.user.id}:${type}`;
         const encrypted = encryptWithNewDek(value, aad);
+        const metadataByteLength =
+            type === "file" && Number.isFinite(Number(byteLength))
+                ? Number(byteLength)
+                : Buffer.byteLength(value, "utf8");
         const source = await getSecretSource(
             req.user.id,
             secret._id,
@@ -283,7 +293,7 @@ router.put("/:id", auth, async (req, res) => {
         secret.metadata = {
             contentType,
             originalFileName: originalFileName || secret.metadata?.originalFileName,
-            byteLength: Buffer.byteLength(value, "utf8"),
+            byteLength: metadataByteLength,
             encryptionVersion: 1,
             source
         };

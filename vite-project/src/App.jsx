@@ -37,8 +37,15 @@ function Layout() {
   const hideHeaderRoutes = ["/login", "/signup"];
   const hideFooterRoutes = ["/login", "/signup"];
   const isSessionJoinRoute = location.pathname.startsWith("/session/");
-  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname) || isSessionJoinRoute;
-  const shouldHideFooter = hideFooterRoutes.includes(location.pathname) || isSessionJoinRoute;
+  const isRequestViewingRoute = /^\/request\/[^/]+/.test(location.pathname);
+  const shouldHideHeader =
+    hideHeaderRoutes.includes(location.pathname) ||
+    isSessionJoinRoute ||
+    isRequestViewingRoute;
+  const shouldHideFooter =
+    hideFooterRoutes.includes(location.pathname) ||
+    isSessionJoinRoute ||
+    isRequestViewingRoute;
 
   return (
     <div className="sekura-app-shell flex min-h-screen flex-col overflow-x-hidden text-slate-950 dark:text-slate-100">

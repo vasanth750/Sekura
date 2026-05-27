@@ -145,6 +145,7 @@ export async function combineLinkAndPasswordKeys(linkKeyBytes, password, passwor
 export async function createStandardEncryptedShare({
   secretName,
   message,
+  attachment,
   expiration,
   password,
   getExpirationDate,
@@ -174,6 +175,7 @@ export async function createStandardEncryptedShare({
     JSON.stringify({
       title: secretName,
       message,
+      attachment,
       expiration,
       passwordProtected,
       burnAfterReading: false,

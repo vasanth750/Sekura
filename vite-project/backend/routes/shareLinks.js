@@ -9,7 +9,7 @@ const router = express.Router();
 const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
 const tokenPattern = /^[A-Za-z0-9_-]{16,96}$/;
 const maxLinkLifetimeMs = 7 * 24 * 60 * 60 * 1000;
-const maxEncryptedPayloadBytes = 200000;
+const maxEncryptedPayloadBytes = 1500000;
 let shareLinkIndexesChecked = false;
 
 function isBase64Url(value) {

@@ -2,7 +2,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import argon2 from 'argon2';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -42,17 +44,31 @@ app.use(cors({
 }));
 
 app.use(express.json({
-    limit: "256kb"
+    limit: "2mb"
 }));
+
+function isDatabaseConnected() {
+    return mongoose.connection.readyState === 1;
+}
+
+function requireDatabaseConnection(req, res, next) {
+    if (!isDatabaseConnected()) {
+        return res.status(503).json({
+            message: "Database connection unavailable. Check MongoDB Atlas network access and credentials."
+        });
+    }
+
+    return next();
+}
 
 // ======================================
 // API ROUTES
 // ======================================
 
-app.use("/api/encrypted-secrets", encryptedSecretsRouter);
-app.use("/api/secret-requests", secretRequestsRouter);
-app.use("/api/share-links", shareLinksRouter);
-app.use("/api/live-sessions", liveSessionsRouter);
+app.use("/api/encrypted-secrets", requireDatabaseConnection, encryptedSecretsRouter);
+app.use("/api/secret-requests", requireDatabaseConnection, secretRequestsRouter);
+app.use("/api/share-links", requireDatabaseConnection, shareLinksRouter);
+app.use("/api/live-sessions", requireDatabaseConnection, liveSessionsRouter);
 app.use("/api/auth", authRouter);
 app.use("/", authRouter);
 
@@ -69,6 +85,31 @@ app.get('/', (req, res) => {
 const passwordPattern =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
+async function verifyStoredPassword(storedPassword, submittedPassword) {
+    if (
+        typeof storedPassword !== "string" ||
+        typeof submittedPassword !== "string" ||
+        !storedPassword ||
+        !submittedPassword
+    ) {
+        return false;
+    }
+
+    if (storedPassword.startsWith("$argon2")) {
+        return argon2.verify(storedPassword, submittedPassword);
+    }
+
+    if (
+        storedPassword.startsWith("$2a$") ||
+        storedPassword.startsWith("$2b$") ||
+        storedPassword.startsWith("$2y$")
+    ) {
+        return bcrypt.compare(submittedPassword, storedPassword);
+    }
+
+    return false;
+}
+
 // ======================================
 // SIGNUP API
 // ======================================
@@ -76,6 +117,11 @@ const passwordPattern =
 app.post("/newUser", async (req, res) => {
 
     try {
+        if (!isDatabaseConnected()) {
+            return res.status(503).json({
+                message: "Database connection unavailable. Check MongoDB Atlas network access and credentials."
+            });
+        }
 
         const {
             Name,
@@ -243,6 +289,11 @@ app.post("/newUser", async (req, res) => {
 app.post("/reset-password", async (req, res) => {
 
     try {
+        if (!isDatabaseConnected()) {
+            return res.status(503).json({
+                message: "Database connection unavailable. Check MongoDB Atlas network access and credentials."
+            });
+        }
 
         const {
             Email,
@@ -340,12 +391,26 @@ app.post("/reset-password", async (req, res) => {
 app.post("/login", async (req, res) => {
 
     try {
+        if (!isDatabaseConnected()) {
+            return res.status(503).json({
+                message: "Database connection unavailable. Check MongoDB Atlas network access and credentials."
+            });
+        }
 
         const {
             Email,
             Password
         } = req.body;
         const normalizedEmail = normalizeEmail(Email);
+
+        if (!normalizedEmail || typeof Password !== "string") {
+            return res.status(400).json({
+
+                message:
+                    "Email and password are required"
+
+            });
+        }
 
         // =========================
         // FIND USER
@@ -380,12 +445,9 @@ app.post("/login", async (req, res) => {
         // =========================
 
         const validPassword =
-            await argon2.verify(
-
+            await verifyStoredPassword(
                 userValidation.password,
-
                 Password
-
             );
 
         if (!validPassword) {
@@ -397,6 +459,11 @@ app.post("/login", async (req, res) => {
 
             });
 
+        }
+
+        if (!userValidation.password.startsWith("$argon2")) {
+            userValidation.password = await argon2.hash(Password);
+            await userValidation.save();
         }
 
         // =========================

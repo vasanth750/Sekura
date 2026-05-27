@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, KeyRound, Link2, Plus, Search, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText, Image, KeyRound, Link2, Plus, Search, ShieldCheck } from "lucide-react";
 import AddSecret from "../popup-page/addSecret";
 import api from "../api";
 import {
@@ -9,6 +9,7 @@ import {
   SecretActionButtons,
   SecretViewerDialog,
 } from "../components/secrets/SecretDialogs";
+import { formatBytes, isImageType } from "../lib/attachments";
 
 const PAGE_SIZE = 8;
 
@@ -130,6 +131,9 @@ export default function Secrets() {
         title,
         value,
         type: secretToEdit.type || "secret",
+        contentType: secretToEdit.metadata?.contentType,
+        originalFileName: secretToEdit.metadata?.originalFileName,
+        byteLength: secretToEdit.metadata?.byteLength,
       });
 
       setSecrets((currentSecrets) =>
@@ -290,15 +294,30 @@ export default function Secrets() {
                 >
                   <div className="sekura-heading flex min-w-0 items-center gap-3 p-4 font-semibold">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 text-green-700 dark:bg-green-400/10 dark:text-green-300">
-                      <KeyRound className="h-4 w-4" />
+                      {secret.type === "file" ? (
+                        isImageType(secret.metadata?.contentType) ? (
+                          <Image className="h-4 w-4" />
+                        ) : (
+                          <FileText className="h-4 w-4" />
+                        )
+                      ) : (
+                        <KeyRound className="h-4 w-4" />
+                      )}
                     </span>
-                    <span className="truncate" title={secret.title}>
-                      {secret.title}
+                    <span className="min-w-0">
+                      <span className="block truncate" title={secret.title}>
+                        {secret.title}
+                      </span>
+                      {secret.type === "file" && (
+                        <span className="sekura-muted block truncate text-xs font-normal">
+                          {secret.metadata?.originalFileName || "Attached file"} - {formatBytes(secret.metadata?.byteLength)}
+                        </span>
+                      )}
                     </span>
                   </div>
 
                   <div className="p-4 text-center">
-                    {getSecretSourceLabel(secret)}
+                    {secret.type === "file" ? "File" : getSecretSourceLabel(secret)}
                   </div>
 
                   <div className="sekura-muted whitespace-nowrap p-4 text-center">

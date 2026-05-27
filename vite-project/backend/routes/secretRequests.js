@@ -10,6 +10,7 @@ const router = express.Router();
 
 const requestTokenPattern = /^[A-Za-z0-9_-]{16,96}$/;
 const defaultRequestLifetimeMs = 7 * 24 * 60 * 60 * 1000;
+const allowedSecretTypes = ["secret", "note", "message", "file"];
 
 function createRequestToken() {
   return crypto.randomBytes(24).toString("base64url");
@@ -116,6 +117,16 @@ router.post("/:token/submit", async (req, res) => {
   try {
     const { token } = req.params;
     const value = typeof req.body.value === "string" ? req.body.value : "";
+    const type = typeof req.body.type === "string" ? req.body.type : "secret";
+    const contentType =
+      typeof req.body.contentType === "string" && req.body.contentType.trim()
+        ? req.body.contentType.trim()
+        : "text/plain";
+    const originalFileName =
+      typeof req.body.originalFileName === "string"
+        ? req.body.originalFileName.trim().slice(0, 180)
+        : "";
+    const submittedByteLength = Number(req.body.byteLength);
 
     if (!requestTokenPattern.test(token)) {
       return res.status(400).json({
@@ -129,7 +140,13 @@ router.post("/:token/submit", async (req, res) => {
       });
     }
 
-    if (Buffer.byteLength(value, "utf8") > 200000) {
+    if (!allowedSecretTypes.includes(type)) {
+      return res.status(400).json({
+        message: "Invalid secret type",
+      });
+    }
+
+    if (Buffer.byteLength(value, "utf8") > 1500000) {
       return res.status(413).json({
         message: "Secret value is too large",
       });
@@ -155,9 +172,12 @@ router.post("/:token/submit", async (req, res) => {
       });
     }
 
-    const type = "secret";
     const aad = `${secretRequest.owner}:${type}`;
     const encrypted = encryptWithNewDek(value, aad);
+    const metadataByteLength =
+      type === "file" && Number.isFinite(submittedByteLength)
+        ? submittedByteLength
+        : Buffer.byteLength(value, "utf8");
 
     const secret = await EncryptedSecret.create({
       owner: secretRequest.owner,
@@ -166,8 +186,9 @@ router.post("/:token/submit", async (req, res) => {
       encryptedData: encrypted.encryptedData,
       keyEnvelope: encrypted.keyEnvelope,
       metadata: {
-        contentType: "text/plain",
-        byteLength: Buffer.byteLength(value, "utf8"),
+        contentType,
+        originalFileName,
+        byteLength: metadataByteLength,
         encryptionVersion: 1,
         source: "request",
       },

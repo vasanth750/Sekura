@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, Clock, Eye, EyeOff, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Download, Eye, EyeOff, FileText, Image, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
 import api from "../api";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -13,6 +13,7 @@ import {
   normalizeEmail,
   unwrapSessionKey,
 } from "../lib/liveSessionCrypto";
+import { downloadDataUrl, formatBytes, isImageType } from "../lib/attachments";
 
 const pollIntervalMs = 4000;
 
@@ -348,6 +349,50 @@ export default function LiveSessionJoin() {
                 {showSecret ? secret.message : "••••••••••••••••••••"}
               </pre>
             </div>
+
+            {secret.attachment ? (
+              <div className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Attachment</p>
+                <div className="mt-3 flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-950/50 p-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-300/10 text-green-200">
+                    {isImageType(secret.attachment.contentType) ? (
+                      <Image className="h-4 w-4" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-slate-100">
+                      {secret.attachment.name}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {secret.attachment.contentType} - {formatBytes(secret.attachment.byteLength)}
+                    </p>
+                  </div>
+                </div>
+                {isImageType(secret.attachment.contentType) ? (
+                  <img
+                    src={secret.attachment.dataUrl}
+                    alt={secret.attachment.name}
+                    className="mt-3 max-h-72 w-full rounded-lg border border-slate-700 object-contain"
+                  />
+                ) : null}
+                <Button
+                  type="button"
+                  onClick={() =>
+                    downloadDataUrl(
+                      secret.attachment.dataUrl,
+                      secret.attachment.name,
+                      secret.attachment.contentType
+                    )
+                  }
+                  className="mt-3 w-full"
+                >
+                  <Download className="h-4 w-4" />
+                  Download File
+                </Button>
+              </div>
+            ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300">

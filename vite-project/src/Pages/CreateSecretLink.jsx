@@ -11,10 +11,12 @@ import {
   Eye,
   EyeOff,
   FileLock2,
+  Image,
   KeyRound,
   Link2,
   Loader2,
   LockKeyhole,
+  Paperclip,
   RadioTower,
   RefreshCw,
   Search,
@@ -22,6 +24,7 @@ import {
   Sparkles,
   Square,
   Users,
+  X,
 } from "lucide-react";
 import api from "../api";
 import { Button } from "../components/ui/button";
@@ -40,6 +43,7 @@ import {
   normalizeEmail,
   wrapSessionKey,
 } from "../lib/liveSessionCrypto";
+import { fileToDataUrl, formatBytes, MAX_ATTACHMENT_BYTES } from "../lib/attachments";
 
 const SHARE_MODE_STANDARD = "standard";
 const SHARE_MODE_PROTECTED = "protected";
@@ -84,7 +88,8 @@ const formSchema = z.object({
   message: z
     .string()
     .trim()
-    .min(5, "Secret message must be at least 5 characters."),
+    .max(1200, "Secret message cannot exceed 1200 characters.")
+    .optional(),
   expiration: z.string().min(1, "Choose an expiration time."),
   password: z.string().optional(),
 });
@@ -564,6 +569,7 @@ export default function CreateSecretLinkPage() {
   const [loadingSecretId, setLoadingSecretId] = useState("");
   const [selectedSecretId, setSelectedSecretId] = useState("");
   const [selectedSecretTitle, setSelectedSecretTitle] = useState("");
+  const [fileAttachment, setFileAttachment] = useState(null);
 
   const [protectedSession, setProtectedSession] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -608,6 +614,45 @@ export default function CreateSecretLinkPage() {
 
   const showToast = (type, message) => {
     setToast({ type, message });
+  };
+
+  const handleFileAttachment = async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      showToast("error", `Files must be ${formatBytes(MAX_ATTACHMENT_BYTES)} or smaller.`);
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setFileAttachment({
+        name: file.name,
+        contentType: file.type || "application/octet-stream",
+        byteLength: file.size,
+        dataUrl,
+      });
+      if (!messageValue.trim()) {
+        setValue("message", `Attached file: ${file.name}`, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+      showToast("success", "File attached.");
+    } catch (fileError) {
+      showToast("error", fileError.message);
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const clearFileAttachment = () => {
+    setFileAttachment(null);
   };
 
   useEffect(() => {
@@ -774,11 +819,22 @@ export default function CreateSecretLinkPage() {
 
       setSelectedSecretId(secretId);
       setSelectedSecretTitle(decryptedSecret.title);
+      setFileAttachment(
+        decryptedSecret.type === "file"
+          ? {
+              name: decryptedSecret.metadata?.originalFileName || decryptedSecret.title,
+              contentType:
+                decryptedSecret.metadata?.contentType || "application/octet-stream",
+              byteLength: decryptedSecret.metadata?.byteLength || 0,
+              dataUrl: decryptedSecret.value,
+            }
+          : null
+      );
       setValue("secretName", decryptedSecret.title, {
         shouldDirty: true,
         shouldValidate: true,
       });
-      setValue("message", decryptedSecret.value, {
+      setValue("message", decryptedSecret.type === "file" ? "" : decryptedSecret.value, {
         shouldDirty: true,
         shouldValidate: true,
       });
@@ -801,7 +857,8 @@ export default function CreateSecretLinkPage() {
       sessionKeyBytes,
       payload: {
         title: values.secretName,
-        message: values.message,
+        message: values.message || "",
+        attachment: fileAttachment,
         createdAt: new Date().toISOString(),
       },
     });
@@ -847,13 +904,23 @@ export default function CreateSecretLinkPage() {
         setIsEncrypting(true);
 
         if (shareMode === SHARE_MODE_PROTECTED) {
+          if (!values.message?.trim() && !fileAttachment) {
+            showToast("error", "Add a message or attach a file.");
+            return;
+          }
           await createProtectedSession(values);
+          return;
+        }
+
+        if (!values.message?.trim() && !fileAttachment) {
+          showToast("error", "Add a message or attach a file.");
           return;
         }
 
         const encryptedShare = await createStandardEncryptedShare({
           secretName: values.secretName,
-          message: values.message,
+          message: values.message || "",
+          attachment: fileAttachment,
           expiration: values.expiration,
           password: values.password,
           getExpirationDate: getStandardExpirationDate,
@@ -943,6 +1010,7 @@ export default function CreateSecretLinkPage() {
     sessionKeyRef.current = null;
     setSelectedSecretId("");
     setSelectedSecretTitle("");
+    setFileAttachment(null);
     setShareMode(SHARE_MODE_STANDARD);
     showToast("success", "Form cleared.");
   };
@@ -1080,6 +1148,50 @@ export default function CreateSecretLinkPage() {
                     </span>
                   </div>
                   <FieldError id="message-error" message={errors.message?.message} />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="sekura-secondary-btn flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition">
+                    <Paperclip className="h-4 w-4" aria-hidden="true" />
+                    Attach File Or Image
+                    <input
+                      type="file"
+                      className="sr-only"
+                      disabled={hasActiveProtectedSession}
+                      onChange={handleFileAttachment}
+                    />
+                  </label>
+
+                  {fileAttachment && (
+                    <div className="flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-400/20 dark:bg-green-400/10">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-green-700 dark:bg-white/10 dark:text-green-200">
+                          {fileAttachment.contentType.startsWith("image/") ? (
+                            <Image className="h-4 w-4" aria-hidden="true" />
+                          ) : (
+                            <FileLock2 className="h-4 w-4" aria-hidden="true" />
+                          )}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="sekura-heading truncate text-sm font-bold">
+                            {fileAttachment.name}
+                          </p>
+                          <p className="sekura-muted text-xs">
+                            {fileAttachment.contentType} - {formatBytes(fileAttachment.byteLength)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={hasActiveProtectedSession}
+                        onClick={clearFileAttachment}
+                        className="sekura-secondary-btn flex h-9 w-9 items-center justify-center rounded-lg"
+                        aria-label="Remove attached file"
+                      >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {shareMode === SHARE_MODE_STANDARD ? (

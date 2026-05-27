@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { Eye, EyeOff, FileText, LockKeyhole, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Eye, EyeOff, FileText, Image, LockKeyhole, Paperclip, X } from "lucide-react";
 import api from "../api";
+import { fileToDataUrl, formatBytes, MAX_ATTACHMENT_BYTES } from "../lib/attachments";
 
 export default function AddSecret({ closePopup, onSecretCreated }) {
   const [secretName, setSecretName] = useState("");
   const [secretValue, setSecretValue] = useState("");
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [attachedFileValue, setAttachedFileValue] = useState("");
   const [showSecret, setShowSecret] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -13,7 +17,7 @@ export default function AddSecret({ closePopup, onSecretCreated }) {
     try {
       setError("");
 
-      if (!secretName.trim() || !secretValue.trim()) {
+      if (!secretName.trim() || (!secretValue.trim() && !attachedFileValue)) {
         setError("Secret name and value are required");
         return;
       }
@@ -22,8 +26,11 @@ export default function AddSecret({ closePopup, onSecretCreated }) {
 
       const response = await api.post("/api/encrypted-secrets", {
         title: secretName,
-        value: secretValue,
-        type: "secret",
+        value: attachedFileValue || secretValue,
+        type: attachedFile ? "file" : "secret",
+        contentType: attachedFile?.type || "text/plain",
+        originalFileName: attachedFile?.name,
+        byteLength: attachedFile?.size,
       });
 
       onSecretCreated(response.data.secret);
@@ -35,8 +42,43 @@ export default function AddSecret({ closePopup, onSecretCreated }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-950/55 p-4 backdrop-blur-sm sm:items-center">
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0];
+
+    setError("");
+
+    if (!file) {
+      setAttachedFile(null);
+      setAttachedFileValue("");
+      return;
+    }
+
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      setError(`Files must be ${formatBytes(MAX_ATTACHMENT_BYTES)} or smaller.`);
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      setAttachedFile(file);
+      setAttachedFileValue(await fileToDataUrl(file));
+      if (!secretName.trim()) {
+        setSecretName(file.name);
+      }
+    } catch (fileError) {
+      setError(fileError.message);
+      setAttachedFile(null);
+      setAttachedFileValue("");
+    }
+  };
+
+  const clearFile = () => {
+    setAttachedFile(null);
+    setAttachedFileValue("");
+  };
+
+  return createPortal(
+    <div className="sekura-modal-backdrop fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto p-4 sm:items-center">
       <div className="sekura-panel my-4 max-h-[calc(100vh-2rem)] w-full max-w-[600px] overflow-y-auto rounded-xl p-6">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -109,6 +151,45 @@ export default function AddSecret({ closePopup, onSecretCreated }) {
             </span>
             <span>{secretValue.length.toLocaleString()} characters</span>
           </div>
+
+          <label className="sekura-secondary-btn mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition">
+            <Paperclip className="h-4 w-4" />
+            Attach File Or Image
+            <input
+              type="file"
+              className="sr-only"
+              onChange={handleFileChange}
+            />
+          </label>
+
+          {attachedFile && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm dark:border-green-400/20 dark:bg-green-400/10">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-green-700 dark:bg-white/10 dark:text-green-200">
+                  {attachedFile.type.startsWith("image/") ? (
+                    <Image className="h-4 w-4" />
+                  ) : (
+                    <Paperclip className="h-4 w-4" />
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="sekura-heading truncate font-semibold">
+                    {attachedFile.name}
+                  </p>
+                  <p className="sekura-muted text-xs">
+                    {attachedFile.type || "File"} - {formatBytes(attachedFile.size)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={clearFile}
+                className="sekura-secondary-btn rounded-lg px-3 py-2 text-xs font-semibold"
+              >
+                Remove
+              </button>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -126,6 +207,7 @@ export default function AddSecret({ closePopup, onSecretCreated }) {
           {loading ? "Saving..." : "Save Secret"}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Inbox, KeyRound, Link2, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
@@ -96,8 +97,8 @@ function MobileNavLink({ icon: Icon, isActive, name, onClick, path }) {
 function MobileDrawer({ location, onClose }) {
   return (
     <>
-      <div onClick={onClose} className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-md animate-[sekuraBackdropFade_300ms_ease-out]" />
-      <aside className="fixed inset-y-0 left-0 z-[90] flex h-screen w-[min(88vw,20rem)] max-w-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-950 shadow-[24px_0_70px_rgba(15,23,42,0.16)] animate-[sekuraMobileDrawerSlide_300ms_ease-out] dark:border-white/10 dark:bg-slate-950 dark:text-slate-100" aria-label="Mobile navigation">
+      <div onClick={onClose} className="sekura-modal-backdrop fixed inset-0 z-[100] animate-[sekuraBackdropFade_300ms_ease-out]" />
+      <aside className="fixed inset-y-0 left-0 z-[110] flex h-dvh min-h-dvh w-[min(86vw,21rem)] max-w-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-950 shadow-[24px_0_70px_rgba(15,23,42,0.22)] animate-[sekuraMobileDrawerSlide_300ms_ease-out] dark:border-white/10 dark:bg-slate-950 dark:text-slate-100" aria-label="Mobile navigation">
         <div className="h-1 w-full bg-green-600" />
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-4 dark:border-white/10">
           <Link to="/dashboard" onClick={onClose} className="min-w-0">
@@ -137,8 +138,22 @@ export default function Header() {
   });
   const location = useLocation();
   const navigate = useNavigate();
+  const portalReady = typeof document !== "undefined";
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileMenuOpen]);
 
   const logout = () => {
     sessionStorage.removeItem("token");
@@ -176,7 +191,10 @@ export default function Header() {
         </div>
       </div>
 
-      {mobileMenuOpen && <MobileDrawer location={location} onClose={closeMobileMenu} />}
+      {mobileMenuOpen && portalReady && createPortal(
+        <MobileDrawer location={location} onClose={closeMobileMenu} />,
+        document.body
+      )}
     </header>
   );
 }

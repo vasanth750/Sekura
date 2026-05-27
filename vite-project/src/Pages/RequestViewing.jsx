@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, Clock, Eye, EyeOff, KeyRound, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Download, Eye, EyeOff, FileText, Image, KeyRound, Loader2, LockKeyhole, Paperclip, ShieldCheck, X } from "lucide-react";
 import api from "../api";
+import {
+  downloadDataUrl,
+  fileToDataUrl,
+  formatBytes,
+  isImageType,
+  MAX_ATTACHMENT_BYTES,
+} from "../lib/attachments";
 
 function base64UrlToBytes(value) {
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -90,6 +97,7 @@ export default function RequestPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [collectionRequest, setCollectionRequest] = useState(null);
   const [collectionSecretValue, setCollectionSecretValue] = useState("");
+  const [collectionFile, setCollectionFile] = useState(null);
   const [showCollectionSecret, setShowCollectionSecret] = useState(false);
   const [collectionSubmitted, setCollectionSubmitted] = useState(false);
   const [submittingCollection, setSubmittingCollection] = useState(false);
@@ -220,8 +228,8 @@ export default function RequestPage() {
   const submitRequestedSecret = async (event) => {
     event.preventDefault();
 
-    if (!collectionSecretValue.trim()) {
-      setError("Enter the requested secret before submitting.");
+    if (!collectionSecretValue.trim() && !collectionFile) {
+      setError("Enter the requested secret or attach a file before submitting.");
       return;
     }
 
@@ -230,11 +238,16 @@ export default function RequestPage() {
       setError("");
 
       await api.post(`/api/secret-requests/${id}/submit`, {
-        value: collectionSecretValue,
+        value: collectionFile?.dataUrl || collectionSecretValue,
+        type: collectionFile ? "file" : "secret",
+        contentType: collectionFile?.contentType || "text/plain",
+        originalFileName: collectionFile?.name,
+        byteLength: collectionFile?.byteLength,
       });
 
       setCollectionSubmitted(true);
       setCollectionSecretValue("");
+      setCollectionFile(null);
     } catch (requestError) {
       setError(
         requestError.response?.data?.message || "Unable to submit this secret."
@@ -242,6 +255,40 @@ export default function RequestPage() {
     } finally {
       setSubmittingCollection(false);
     }
+  };
+
+  const handleCollectionFile = async (event) => {
+    const file = event.target.files?.[0];
+
+    setError("");
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      setError(`Files must be ${formatBytes(MAX_ATTACHMENT_BYTES)} or smaller.`);
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      setCollectionFile({
+        name: file.name,
+        contentType: file.type || "application/octet-stream",
+        byteLength: file.size,
+        dataUrl: await fileToDataUrl(file),
+      });
+    } catch (fileError) {
+      setError(fileError.message);
+      setCollectionFile(null);
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const clearCollectionFile = () => {
+    setCollectionFile(null);
   };
 
   return (
@@ -288,16 +335,53 @@ export default function RequestPage() {
               <div>
                 <label className="sekura-heading mb-2 block text-sm font-semibold">Enter Secret</label>
                 <div className="relative">
-                  <input type={showCollectionSecret ? "text" : "password"} placeholder="Enter the requested secret" value={collectionSecretValue} onChange={(event) => {
+                  <textarea rows={6} placeholder="Enter the requested secret" value={collectionSecretValue} spellCheck={false} onChange={(event) => {
                     setCollectionSecretValue(event.target.value);
                     setError("");
-                  }} className="sekura-input w-full rounded-lg px-4 py-4 pr-14 outline-none transition" />
-                  <button type="button" className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-green-100" onClick={() => setShowCollectionSecret((current) => !current)} aria-label={showCollectionSecret ? "Hide secret" : "Show secret"}>
+                  }} className={`sekura-input min-h-36 w-full resize-y rounded-lg px-4 py-4 pr-14 font-mono text-sm leading-6 outline-none transition placeholder:font-sans ${showCollectionSecret ? "" : "[-webkit-text-security:disc]"}`} />
+                  <button type="button" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-green-100" onClick={() => setShowCollectionSecret((current) => !current)} aria-label={showCollectionSecret ? "Hide secret" : "Show secret"}>
                     {showCollectionSecret ? <EyeOff size={22} /> : <Eye size={22} />}
                   </button>
                 </div>
               </div>
-              <button type="submit" disabled={!collectionSecretValue.trim() || submittingCollection} className="sekura-primary-btn flex w-full items-center justify-center gap-2 rounded-lg py-4 text-lg font-bold transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50">
+              <div className="space-y-3">
+                <label className="sekura-secondary-btn flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition">
+                  <Paperclip className="h-4 w-4" aria-hidden="true" />
+                  Attach File Or Image
+                  <input type="file" className="sr-only" onChange={handleCollectionFile} />
+                </label>
+
+                {collectionFile && (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-400/20 dark:bg-green-400/10">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-green-700 dark:bg-white/10 dark:text-green-200">
+                        {isImageType(collectionFile.contentType) ? (
+                          <Image className="h-4 w-4" aria-hidden="true" />
+                        ) : (
+                          <FileText className="h-4 w-4" aria-hidden="true" />
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="sekura-heading truncate text-sm font-bold">
+                          {collectionFile.name}
+                        </p>
+                        <p className="sekura-muted text-xs">
+                          {collectionFile.contentType} - {formatBytes(collectionFile.byteLength)}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearCollectionFile}
+                      className="sekura-secondary-btn flex h-9 w-9 items-center justify-center rounded-lg"
+                      aria-label="Remove attached file"
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <button type="submit" disabled={(!collectionSecretValue.trim() && !collectionFile) || submittingCollection} className="sekura-primary-btn flex w-full items-center justify-center gap-2 rounded-lg py-4 text-lg font-bold transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50">
                 {submittingCollection && <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />}
                 {submittingCollection ? "Submitting..." : "Submit Secret Securely"}
               </button>
@@ -344,6 +428,51 @@ export default function RequestPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Secret Message</p>
                 <pre className="sekura-input mt-3 whitespace-pre-wrap break-words rounded-lg p-4 font-sans text-base leading-7">{secret.message}</pre>
               </div>
+              {secret.attachment && (
+                <div className="sekura-surface rounded-xl p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Attachment</p>
+                  <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-400/20 dark:bg-green-400/10">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-green-700 dark:bg-white/10 dark:text-green-200">
+                        {isImageType(secret.attachment.contentType) ? (
+                          <Image className="h-5 w-5" aria-hidden="true" />
+                        ) : (
+                          <FileText className="h-5 w-5" aria-hidden="true" />
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="sekura-heading truncate font-bold">
+                          {secret.attachment.name}
+                        </p>
+                        <p className="sekura-muted text-sm">
+                          {secret.attachment.contentType} - {formatBytes(secret.attachment.byteLength)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {isImageType(secret.attachment.contentType) && (
+                    <img
+                      src={secret.attachment.dataUrl}
+                      alt={secret.attachment.name}
+                      className="mt-3 max-h-80 w-full rounded-lg border border-slate-200 object-contain dark:border-white/10"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadDataUrl(
+                        secret.attachment.dataUrl,
+                        secret.attachment.name,
+                        secret.attachment.contentType
+                      )
+                    }
+                    className="sekura-primary-btn mt-3 flex w-full items-center justify-center gap-2 rounded-lg py-3 font-bold transition"
+                  >
+                    <Download className="h-4 w-4" aria-hidden="true" />
+                    Download File
+                  </button>
+                </div>
+              )}
               <div className="grid gap-3 sm:grid-cols-2">
                 <StatusCard icon={Clock} title="Expires" text={new Date(linkData.expiresAt).toLocaleString()} />
                 <StatusCard icon={LockKeyhole} title="Access Window" text="This link remains readable until expiration." />
