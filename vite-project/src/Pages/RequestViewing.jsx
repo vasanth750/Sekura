@@ -313,7 +313,7 @@ export default function RequestPage() {
         <div className="p-6 md:p-10">
           {loading && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Loader2 className="h-10 w-10 animate-spin text-green-200" aria-hidden="true" />
+              <Loader2 className="h-10 w-10 animate-spin text-green-700 dark:text-green-200" aria-hidden="true" />
               <p className="sekura-heading mt-4 font-semibold">Opening secure link...</p>
             </div>
           )}
@@ -339,7 +339,7 @@ export default function RequestPage() {
                     setCollectionSecretValue(event.target.value);
                     setError("");
                   }} className={`sekura-input min-h-36 w-full resize-y rounded-lg px-4 py-4 pr-14 font-mono text-sm leading-6 outline-none transition placeholder:font-sans ${showCollectionSecret ? "" : "[-webkit-text-security:disc]"}`} />
-                  <button type="button" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-green-100" onClick={() => setShowCollectionSecret((current) => !current)} aria-label={showCollectionSecret ? "Hide secret" : "Show secret"}>
+                  <button type="button" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-green-50 hover:text-green-700 dark:hover:bg-white/10 dark:hover:text-green-100" onClick={() => setShowCollectionSecret((current) => !current)} aria-label={showCollectionSecret ? "Hide secret" : "Show secret"}>
                     {showCollectionSecret ? <EyeOff size={22} /> : <Eye size={22} />}
                   </button>
                 </div>
@@ -391,7 +391,7 @@ export default function RequestPage() {
           {!loading && collectionRequest && collectionSubmitted && (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full border border-emerald-300/25 bg-emerald-300/10">
-                <ShieldCheck size={40} className="text-emerald-200" />
+                <ShieldCheck size={40} className="text-emerald-700 dark:text-emerald-200" />
               </div>
               <h2 className="sekura-heading text-3xl font-black">Secret Submitted</h2>
               <p className="sekura-muted mt-3 max-w-md">Your secret was encrypted and added to the requester&apos;s dashboard and credential registry.</p>
@@ -405,7 +405,7 @@ export default function RequestPage() {
                 <label className="sekura-heading mb-2 block text-sm font-semibold" htmlFor="sharePassword">Secure link password</label>
                 <div className="relative">
                   <input id="sharePassword" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter password" className="sekura-input w-full rounded-lg px-4 py-4 pr-14 outline-none transition" />
-                  <button type="button" onClick={() => setShowPassword((current) => !current)} className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/10 hover:text-green-100" aria-label={showPassword ? "Hide password" : "Show password"}>
+                  <button type="button" onClick={() => setShowPassword((current) => !current)} className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-green-50 hover:text-green-700 dark:hover:bg-white/10 dark:hover:text-green-100" aria-label={showPassword ? "Hide password" : "Show password"}>
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
@@ -421,16 +421,16 @@ export default function RequestPage() {
             <div className="space-y-5">
               <StatusCard icon={CheckCircle2} title="Secret Decrypted" text="The server sent encrypted data only. Your browser used the URL key to reveal it here." />
               <div className="sekura-surface rounded-xl p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Secret Name</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-700 dark:text-green-100">Secret Name</p>
                 <h2 className="sekura-heading mt-2 break-words text-2xl font-black">{secret.title || linkData.title}</h2>
               </div>
               <div className="sekura-surface rounded-xl p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Secret Message</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-700 dark:text-green-100">Secret Message</p>
                 <pre className="sekura-input mt-3 whitespace-pre-wrap break-words rounded-lg p-4 font-sans text-base leading-7">{secret.message}</pre>
               </div>
               {secret.attachment && (
                 <div className="sekura-surface rounded-xl p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-100">Attachment</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-green-700 dark:text-green-100">Attachment</p>
                   <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-400/20 dark:bg-green-400/10">
                     <div className="flex items-center gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-green-700 dark:bg-white/10 dark:text-green-200">

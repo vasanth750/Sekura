@@ -3,6 +3,11 @@ import { createPortal } from "react-dom";
 import { Camera, ImageOff, LogOut, Mail, ShieldCheck, UserRound, X } from "lucide-react";
 import defaultProfile from "../../assets/acc.jpeg";
 
+const iconTileClass =
+  "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-green-200 text-green-700 dark:border-green-300/10 dark:bg-green-300/10 dark:text-green-300";
+
+const drawerSectionBorder = "border-slate-200 dark:border-white/10";
+
 function ProfileTriggerButton({ image, onOpen }) {
   return (
     <button type="button" onClick={onOpen} className="group relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-white p-0.5 shadow-sm transition-all duration-200 hover:border-green-200 hover:bg-green-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:border-white/10 dark:bg-white/[0.06] dark:hover:border-green-300/40" aria-label="Open profile">
@@ -16,7 +21,7 @@ function ProfileInfoCard({ icon: Icon, label, value }) {
   return (
     <div className="sekura-surface group rounded-xl p-5 transition-all duration-200 hover:border-green-200 hover:bg-green-50 dark:hover:border-green-300/30 dark:hover:bg-green-300/[0.055]">
       <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-700 transition-all duration-200 dark:border-green-300/10 dark:bg-green-300/10 dark:text-green-300">
+        <span className={`${iconTileClass} bg-green-50 transition-all duration-200`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0">
@@ -32,7 +37,7 @@ function SecurityStatusCard() {
   return (
     <div className="rounded-xl border border-green-200 bg-green-50 p-5 transition-all duration-200 dark:border-green-300/25 dark:bg-green-300/[0.07]">
       <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-green-200 bg-white text-green-700 dark:border-green-300/20 dark:bg-green-300/10 dark:text-green-300">
+        <span className={`${iconTileClass} bg-white dark:border-green-300/20`}>
           <ShieldCheck className="h-6 w-6" aria-hidden="true" />
         </span>
         <div>
@@ -65,10 +70,10 @@ function ProfileDrawer({
   user,
 }) {
   return (
-    <aside onMouseDown={(event) => event.stopPropagation()} className="fixed inset-y-0 right-0 z-[100] flex h-screen min-h-screen w-[min(100vw,420px)] flex-col overflow-hidden rounded-l-2xl border-l border-slate-200 bg-white text-slate-950 shadow-[-28px_0_70px_rgba(15,23,42,0.16)] animate-[sekuraSidebarSlide_300ms_ease-out] dark:border-white/10 dark:bg-slate-950 dark:text-slate-100" aria-label="Profile sidebar">
+    <aside onMouseDown={(event) => event.stopPropagation()} className={`fixed inset-y-0 right-0 z-[100] flex h-screen min-h-screen w-[min(100vw,420px)] flex-col overflow-hidden rounded-l-2xl border-l ${drawerSectionBorder} bg-white text-slate-950 shadow-[-28px_0_70px_rgba(15,23,42,0.16)] animate-[sekuraSidebarSlide_300ms_ease-out] dark:bg-slate-950 dark:text-slate-100`} aria-label="Profile sidebar">
       <div className="h-1 w-full bg-green-600" />
 
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-5 dark:border-white/10 dark:bg-slate-950">
+      <div className={`flex items-center justify-between border-b ${drawerSectionBorder} bg-white px-6 py-5 dark:bg-slate-950`}>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-green-700 dark:text-green-300">Profile</p>
           <h2 className="sekura-heading mt-1 text-2xl font-black tracking-normal">Account Settings</h2>
@@ -79,7 +84,7 @@ function ProfileDrawer({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50 px-6 py-7 dark:bg-slate-950">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50 px-6 py-7 dark:bg-slate-950">
         <div className="sekura-panel rounded-xl p-6 text-center transition-all duration-200 hover:border-green-200 dark:hover:border-green-300/40">
           <div className="relative mx-auto h-32 w-32">
             <img src={profileImage} alt="Profile" className="h-full w-full rounded-full border-4 border-green-200/80 object-cover shadow-[0_0_35px_rgba(34,197,94,0.34)] transition-transform duration-300 hover:scale-[1.03]" />
@@ -111,7 +116,7 @@ function ProfileDrawer({
         </div>
       </div>
 
-      <div className="border-t border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-slate-950">
+      <div className={`border-t ${drawerSectionBorder} bg-white p-6 dark:bg-slate-950`}>
         <button type="button" onClick={handleLogout} className="flex min-h-14 w-full items-center justify-center gap-2 rounded-lg bg-red-500 px-5 py-4 font-bold text-white shadow-sm transition-all duration-200 hover:scale-[1.01] hover:bg-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300">
           <LogOut className="h-5 w-5" aria-hidden="true" />
           Logout
@@ -121,20 +126,29 @@ function ProfileDrawer({
   );
 }
 
-export default function ProfileButton({ profileOpen, setProfileOpen, user, logout }) {
+export default function ProfileButton({ enablePortal = true, profileOpen, setProfileOpen, user, logout }) {
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(localStorage.getItem("profileImage") || defaultProfile);
   const portalReady = typeof document !== "undefined";
 
   useEffect(() => {
-    document.documentElement.classList.toggle("sekura-profile-open", profileOpen);
-    document.body.style.overflow = profileOpen ? "hidden" : "";
+    if (!profileOpen || !enablePortal) {
+      return undefined;
+    }
+
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+
+    document.documentElement.classList.add("sekura-profile-open");
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
 
     return () => {
       document.documentElement.classList.remove("sekura-profile-open");
-      document.body.style.overflow = "";
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
     };
-  }, [profileOpen]);
+  }, [enablePortal, profileOpen]);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -166,7 +180,7 @@ export default function ProfileButton({ profileOpen, setProfileOpen, user, logou
     <>
       <ProfileTriggerButton image={profileImage} onOpen={() => setProfileOpen(true)} />
 
-      {profileOpen && portalReady && createPortal(
+      {enablePortal && profileOpen && portalReady && createPortal(
         <>
           <ProfileBackdrop onClose={() => setProfileOpen(false)} />
           <ProfileDrawer

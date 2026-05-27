@@ -136,8 +136,8 @@ function Toast({ toast, onDone }) {
 
   const tone =
     toast?.type === "error"
-      ? "border-red-400/40 bg-red-500/15 text-red-100"
-      : "border-emerald-400/40 bg-emerald-500/15 text-emerald-100";
+      ? "border-red-300 bg-red-50 text-red-800 dark:border-red-400/40 dark:bg-red-500/15 dark:text-red-100"
+      : "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-400/40 dark:bg-emerald-500/15 dark:text-emerald-100";
 
   return (
     <AnimatePresence>
@@ -151,9 +151,9 @@ function Toast({ toast, onDone }) {
           aria-live="polite"
         >
           {toast.type === "error" ? (
-            <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-100" aria-hidden="true" />
           ) : (
-            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+            <CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-100" aria-hidden="true" />
           )}
           <span className="text-sm font-semibold">{toast.message}</span>
         </motion.div>
@@ -165,7 +165,7 @@ function Toast({ toast, onDone }) {
 function QrPreview({ value }) {
   return (
     <div
-      className="mx-auto flex h-44 w-44 items-center justify-center rounded-xl border border-green-300/20 bg-white p-3 shadow-xl shadow-green-500/10"
+      className="mx-auto flex h-44 w-44 items-center justify-center rounded-xl border border-green-200 bg-white p-3 shadow-xl shadow-green-500/10 dark:border-green-300/20"
       aria-label="QR code preview for the generated secure link"
       role="img"
     >
@@ -187,7 +187,7 @@ function FieldError({ id, message }) {
   }
 
   return (
-    <p id={id} className="mt-2 text-sm font-medium text-red-300" role="alert">
+    <p id={id} className="mt-2 text-sm font-medium text-red-600 dark:text-red-300" role="alert">
       {message}
     </p>
   );
@@ -252,11 +252,11 @@ function GeneratedLinkPreview({ generatedLink, shareMode, onCopy }) {
       initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 12, scale: 0.98 }}
-      className="relative overflow-hidden rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.07] p-5"
+      className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 dark:border-emerald-300/20 dark:bg-emerald-300/[0.07]"
     >
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-green-300 via-emerald-300 to-green-500" />
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-200">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200">
           <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
         </div>
         <div>
@@ -286,7 +286,7 @@ function GeneratedLinkPreview({ generatedLink, shareMode, onCopy }) {
           <Button
             type="button"
             onClick={onCopy}
-            className="bg-white text-slate-950 hover:bg-green-100 lg:min-w-28"
+            className="border border-green-200 bg-green-600 text-white shadow-lg shadow-green-500/20 hover:bg-green-700 dark:border-transparent dark:bg-white dark:text-slate-950 dark:hover:bg-green-100 lg:min-w-28"
           >
             <Copy className="h-4 w-4" aria-hidden="true" />
             Copy
@@ -299,8 +299,8 @@ function GeneratedLinkPreview({ generatedLink, shareMode, onCopy }) {
         <div
           className={`flex items-start gap-3 rounded-xl border p-4 ${
             isProtected
-              ? "border-blue-300/25 bg-blue-300/10 text-blue-100"
-              : "border-amber-300/25 bg-amber-300/10 text-amber-100"
+              ? "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-300/25 dark:bg-blue-300/10 dark:text-blue-100"
+              : "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-300/25 dark:bg-amber-300/10 dark:text-amber-100"
           }`}
         >
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
@@ -333,7 +333,7 @@ function ProtectedSessionPanel({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-200">
             Protected session active
           </p>
           <p className="sekura-heading mt-1 text-lg font-bold">
@@ -368,7 +368,7 @@ function ProtectedSessionPanel({
       </div>
 
       {hostError ? (
-        <div className="rounded-xl border border-red-300/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-300/30 dark:bg-red-500/10 dark:text-red-200">
           {hostError}
         </div>
       ) : null}
@@ -467,7 +467,7 @@ function RecentSecretsPanel({
   return (
     <Card className="p-5 sm:p-6 lg:sticky lg:top-28">
       <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-400/10 text-green-200">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-green-700 dark:bg-green-400/10 dark:text-green-200">
           <KeyRound className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
@@ -498,7 +498,7 @@ function RecentSecretsPanel({
         )}
 
         {secretsError && (
-          <div className="rounded-xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-200">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-300/20 dark:bg-red-500/10 dark:text-red-200">
             {secretsError}
           </div>
         )}
@@ -1066,11 +1066,11 @@ export default function CreateSecretLinkPage() {
 
                 {selectedSecretTitle && (
                   <div className="flex items-center gap-3 rounded-2xl border border-green-300/20 bg-green-300/[0.07] p-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-300/10 text-green-200">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700 dark:bg-green-300/10 dark:text-green-200">
                       <KeyRound className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-100">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-700 dark:text-green-100">
                         Selected secret
                       </p>
                       <p className="sekura-heading mt-1 break-words text-sm font-bold">
@@ -1199,7 +1199,7 @@ export default function CreateSecretLinkPage() {
                     <div>
                       <div className="flex items-center justify-between gap-3">
                         <Label htmlFor="password">Password Protection</Label>
-                        <span className="text-xs font-medium text-green-200">
+                        <span className="text-xs font-medium text-green-700 dark:text-green-200">
                           Optional
                         </span>
                       </div>

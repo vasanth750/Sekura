@@ -2,20 +2,20 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --sekura-bg: #f6fff8;
+  --sekura-bg: #f7fbff;
   --sekura-bg-strong: #ffffff;
-  --sekura-panel: rgba(255, 255, 255, 0.92);
-  --sekura-panel-muted: #f1f5f9;
+  --sekura-panel: rgba(255, 255, 255, 0.94);
+  --sekura-panel-muted: #eef7f4;
   --sekura-input: #ffffff;
   --sekura-text: #0f172a;
   --sekura-text-muted: #475569;
   --sekura-text-soft: #64748b;
-  --sekura-border: #e2e8f0;
-  --sekura-border-strong: #cbd5e1;
+  --sekura-border: #dbe7ef;
+  --sekura-border-strong: #b9d8ce;
   --sekura-primary: #16a34a;
   --sekura-primary-strong: #15803d;
   --sekura-primary-soft: #dcfce7;
-  --sekura-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
+  --sekura-shadow: 0 22px 60px rgba(15, 23, 42, 0.1);
   color-scheme: light;
   font-family: Inter, Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -72,22 +72,22 @@ body {
 
 .sekura-modal-backdrop {
   background:
-    radial-gradient(circle at 50% 12%, rgba(34, 197, 94, 0.12), transparent 34%),
-    rgba(248, 250, 252, 0.74);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
-  backdrop-filter: blur(18px) saturate(135%);
+    radial-gradient(circle at 50% 12%, rgba(34, 197, 94, 0.08), transparent 34%),
+    rgba(248, 250, 252, 0.42);
+  -webkit-backdrop-filter: blur(5px) saturate(112%);
+  backdrop-filter: blur(5px) saturate(112%);
 }
 
 .dark .sekura-modal-backdrop {
   background:
-    radial-gradient(circle at 50% 12%, rgba(34, 197, 94, 0.14), transparent 34%),
-    rgba(2, 6, 23, 0.78);
+    radial-gradient(circle at 50% 12%, rgba(34, 197, 94, 0.1), transparent 34%),
+    rgba(2, 6, 23, 0.46);
 }
 
 .sekura-app-shell {
   position: relative;
   isolation: isolate;
-  background: #f6fff8;
+  background: #f7fbff;
 }
 
 .sekura-app-shell::before {
@@ -97,9 +97,10 @@ body {
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 18% 16%, rgba(187, 247, 208, 0.62), transparent 30%),
-    radial-gradient(circle at 82% 8%, rgba(220, 252, 231, 0.72), transparent 28%),
-    linear-gradient(135deg, #ffffff 0%, #f6fff8 45%, #ecfdf5 100%);
+    radial-gradient(circle at 14% 12%, rgba(186, 230, 253, 0.72), transparent 30%),
+    radial-gradient(circle at 78% 10%, rgba(187, 247, 208, 0.64), transparent 30%),
+    radial-gradient(circle at 72% 82%, rgba(204, 251, 241, 0.5), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f7fbff 44%, #edfdf5 100%);
   animation: sekuraSlowGlow 14s ease-in-out infinite alternate;
 }
 
@@ -110,10 +111,10 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
   background-size: 58px 58px;
-  opacity: 0.42;
+  opacity: 0.36;
 }
 
 .dark .sekura-app-shell {
@@ -137,31 +138,31 @@ body {
 
 .sekura-profile-backdrop {
   background:
-    radial-gradient(circle at 78% 18%, rgba(34, 197, 94, 0.12), transparent 34%),
-    rgba(248, 250, 252, 0.68);
-  -webkit-backdrop-filter: blur(20px) saturate(145%);
-  backdrop-filter: blur(20px) saturate(145%);
+    radial-gradient(circle at 78% 18%, rgba(34, 197, 94, 0.08), transparent 34%),
+    rgba(248, 250, 252, 0.38);
+  -webkit-backdrop-filter: blur(5px) saturate(112%);
+  backdrop-filter: blur(5px) saturate(112%);
 }
 
 .dark .sekura-profile-backdrop {
   background:
-    radial-gradient(circle at 78% 18%, rgba(34, 197, 94, 0.14), transparent 34%),
-    rgba(2, 6, 23, 0.76);
+    radial-gradient(circle at 78% 18%, rgba(34, 197, 94, 0.1), transparent 34%),
+    rgba(2, 6, 23, 0.44);
 }
 
 .sekura-profile-open main,
 .sekura-profile-open header > div,
 .sekura-profile-open footer {
-  filter: blur(7px);
-  transform: scale(1.006);
+  filter: blur(2px);
+  transform: scale(1.002);
   transform-origin: center;
   transition: filter 220ms ease, transform 220ms ease;
 }
 
 .sekura-surface {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(185, 216, 206, 0.72);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.07);
 }
 
 .dark .sekura-surface {
@@ -171,9 +172,11 @@ body {
 }
 
 .sekura-panel {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(185, 216, 206, 0.78);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 20px 52px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255, 255, 255, 0.88) inset;
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
 }
 
 .dark .sekura-panel {
@@ -186,9 +189,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-  color: #15803d;
+  border: 1px solid #a7f3d0;
+  background: linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%);
+  color: #047857;
 }
 
 .dark .sekura-kicker {
@@ -214,9 +217,9 @@ body {
 }
 
 .sekura-table-head {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #166534;
+  border-color: #a7f3d0;
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0f9ff 100%);
+  color: #047857;
 }
 
 .dark .sekura-table-head {
@@ -226,12 +229,12 @@ body {
 }
 
 .sekura-row {
-  border-color: #eef2f7;
+  border-color: #e4edf3;
   color: #475569;
 }
 
 .sekura-row:hover {
-  background: #f8fafc;
+  background: rgba(240, 253, 244, 0.58);
 }
 
 .dark .sekura-row {
@@ -244,10 +247,10 @@ body {
 }
 
 .sekura-input {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid #d5e4ed;
+  background: rgba(255, 255, 255, 0.94);
   color: #0f172a;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.035);
 }
 
 .sekura-input::placeholder {
@@ -256,7 +259,7 @@ body {
 
 .sekura-input:focus {
   border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.14), 0 12px 28px rgba(15, 23, 42, 0.06);
 }
 
 .dark .sekura-input {
@@ -268,7 +271,7 @@ body {
 .sekura-primary-btn {
   background: #16a34a;
   color: #ffffff;
-  box-shadow: 0 12px 26px rgba(22, 163, 74, 0.18);
+  box-shadow: 0 14px 30px rgba(22, 163, 74, 0.22);
 }
 
 .sekura-primary-btn:hover {
@@ -281,14 +284,15 @@ body {
 }
 
 .sekura-secondary-btn {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid #d5e4ed;
+  background: rgba(255, 255, 255, 0.9);
   color: #0f172a;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
 }
 
 .sekura-secondary-btn:hover {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+  border-color: #86efac;
+  background: #ecfdf5;
 }
 
 .dark .sekura-secondary-btn {
@@ -298,16 +302,18 @@ body {
 }
 
 .sekura-brand-text {
-  color: #2563eb;
+  color: #0284c7;
   letter-spacing: 0;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .dark .sekura-brand-text {
-  color: #4ade80;
+  color: #38bdf8;
+  text-shadow: none;
 }
 
 .sekura-auth-page {
-  background: #f6fff8;
+  background: #f7fbff;
   color: #0f172a;
 }
 
@@ -318,9 +324,10 @@ body {
 
 .sekura-auth-bg {
   background:
-    radial-gradient(circle at 18% 16%, rgba(187, 247, 208, 0.62), transparent 30%),
-    radial-gradient(circle at 82% 8%, rgba(220, 252, 231, 0.72), transparent 28%),
-    linear-gradient(135deg, #ffffff 0%, #f6fff8 45%, #ecfdf5 100%);
+    radial-gradient(circle at 14% 12%, rgba(186, 230, 253, 0.72), transparent 30%),
+    radial-gradient(circle at 78% 10%, rgba(187, 247, 208, 0.64), transparent 30%),
+    radial-gradient(circle at 72% 82%, rgba(204, 251, 241, 0.5), transparent 34%),
+    linear-gradient(135deg, #ffffff 0%, #f7fbff 44%, #edfdf5 100%);
   animation: sekuraSlowGlow 14s ease-in-out infinite alternate;
 }
 
