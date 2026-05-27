@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "jsonwebtoken": "^9.0.3"
-  }
-}
