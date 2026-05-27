@@ -179,13 +179,13 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-slate-200/80 bg-white/90 shadow-[0_10px_32px_rgba(15,23,42,0.07)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-sm">
+    <header className="fixed inset-x-0 top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 shadow-[0_10px_32px_rgba(15,23,42,0.07)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/85 dark:shadow-sm">
       <div className="flex min-h-16 w-full items-center px-2 py-3 sm:px-4 lg:min-h-[4.5rem] lg:px-5 xl:px-6">
-        <div className="flex w-full items-center gap-3 lg:hidden">
+        <div className="relative flex w-full items-center gap-3 lg:hidden">
           <button type="button" onClick={() => setMobileMenuOpen(true)} className={cn(iconButtonClass, "h-11 w-11 shadow-sm")} aria-label="Open navigation">
             <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
-          <Link to="/dashboard" className="min-w-0 cursor-pointer overflow-hidden">
+          <Link to="/dashboard" className="absolute left-1/2 max-w-[44vw] -translate-x-1/2 cursor-pointer overflow-hidden">
             <Brand compact />
           </Link>
           <div className="ml-auto flex min-w-0 items-center justify-end gap-2 overflow-visible">

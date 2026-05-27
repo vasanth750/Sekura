@@ -234,16 +234,16 @@ export default function Dashboard() {
               Welcome back
             </h1>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 md:text-base dark:text-slate-400">
+            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-600 md:max-w-md md:text-base dark:text-slate-400">
               Monitor encrypted credentials, create short-lived links, and keep
               sensitive material moving through trusted paths.
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
             <button
               onClick={() => navigate("/secrets")}
-              className="rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-green-200 hover:bg-green-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+              className="inline-flex min-w-32 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-green-200 hover:bg-green-50 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
             >
               New Secret
             </button>

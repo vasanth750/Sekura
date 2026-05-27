@@ -51,7 +51,7 @@ function Layout() {
     <div className="sekura-app-shell flex min-h-screen flex-col overflow-x-hidden text-slate-950 dark:text-slate-100">
       {!shouldHideHeader && <Header />}
 
-      <main className="relative z-10 flex-1 overflow-x-hidden">
+      <main className={`relative z-10 flex-1 overflow-x-hidden ${shouldHideHeader ? "" : "pt-16 lg:pt-[4.5rem]"}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
