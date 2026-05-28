@@ -475,7 +475,15 @@ export default function RequestPage() {
               )}
               <div className="grid gap-3 sm:grid-cols-2">
                 <StatusCard icon={Clock} title="Expires" text={new Date(linkData.expiresAt).toLocaleString()} />
-                <StatusCard icon={LockKeyhole} title="Access Window" text="This link remains readable until expiration." />
+                <StatusCard
+                  icon={LockKeyhole}
+                  title="Access Window"
+                  text={
+                    linkData.burnAfterReading
+                      ? "This one-time link closes after this reveal."
+                      : "This link remains readable until expiration."
+                  }
+                />
               </div>
             </div>
           )}

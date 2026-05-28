@@ -148,6 +148,7 @@ export async function createStandardEncryptedShare({
   attachment,
   expiration,
   password,
+  burnAfterReading = false,
   getExpirationDate,
 }) {
   if (!window.crypto?.subtle) {
@@ -178,7 +179,7 @@ export async function createStandardEncryptedShare({
       attachment,
       expiration,
       passwordProtected,
-      burnAfterReading: false,
+      burnAfterReading: Boolean(burnAfterReading),
       createdAt: new Date().toISOString(),
     })
   );
@@ -192,7 +193,7 @@ export async function createStandardEncryptedShare({
       encoding: "base64url",
     },
     expiresAt: getExpirationDate(expiration).toISOString(),
-    burnAfterReading: false,
+    burnAfterReading: Boolean(burnAfterReading),
     passwordProtected,
     passwordKdf: passwordKdf
       ? {

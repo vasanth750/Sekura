@@ -32,6 +32,7 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Select } from "../components/ui/select";
+import { Switch } from "../components/ui/switch";
 import { Textarea } from "../components/ui/textarea";
 import {
   base64UrlToBytes,
@@ -570,6 +571,7 @@ export default function CreateSecretLinkPage() {
   const [selectedSecretId, setSelectedSecretId] = useState("");
   const [selectedSecretTitle, setSelectedSecretTitle] = useState("");
   const [fileAttachment, setFileAttachment] = useState(null);
+  const [burnAfterReading, setBurnAfterReading] = useState(false);
 
   const [protectedSession, setProtectedSession] = useState(null);
   const [participants, setParticipants] = useState([]);
@@ -923,6 +925,7 @@ export default function CreateSecretLinkPage() {
           attachment: fileAttachment,
           expiration: values.expiration,
           password: values.password,
+          burnAfterReading,
           getExpirationDate: getStandardExpirationDate,
         });
 
@@ -1011,6 +1014,7 @@ export default function CreateSecretLinkPage() {
     setSelectedSecretId("");
     setSelectedSecretTitle("");
     setFileAttachment(null);
+    setBurnAfterReading(false);
     setShareMode(SHARE_MODE_STANDARD);
     showToast("success", "Form cleared.");
   };
@@ -1228,10 +1232,22 @@ export default function CreateSecretLinkPage() {
                     </div>
 
                     <div className="sekura-surface rounded-lg p-4">
-                      <Label>Access window</Label>
-                      <p className="sekura-muted mt-1 text-sm leading-5">
-                        Viewers can reopen this link until expiration.
-                      </p>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <Label htmlFor="burnAfterReading">One-time view</Label>
+                          <p className="sekura-muted mt-1 text-sm leading-5">
+                            {burnAfterReading
+                              ? "The link closes after the first successful reveal."
+                              : "Viewers can reopen this link until expiration."}
+                          </p>
+                        </div>
+                        <Switch
+                          id="burnAfterReading"
+                          checked={burnAfterReading}
+                          disabled={hasActiveProtectedSession}
+                          onCheckedChange={setBurnAfterReading}
+                        />
+                      </div>
                     </div>
                   </div>
                 ) : (

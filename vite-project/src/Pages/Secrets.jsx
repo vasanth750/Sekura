@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, FileText, Image, KeyRound, Link2, Plus, Search, ShieldCheck } from "lucide-react";
 import AddSecret from "../popup-page/addSecret";
@@ -28,6 +28,7 @@ export default function Secrets() {
   const [secretToEdit, setSecretToEdit] = useState(null);
   const [editError, setEditError] = useState("");
   const [secretPage, setSecretPage] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchSecrets = async () => {
     try {
@@ -160,11 +161,38 @@ export default function Secrets() {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
-  const secretPageCount = Math.max(1, Math.ceil(secrets.length / PAGE_SIZE));
-  const pagedSecrets = secrets.slice(
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredSecrets = useMemo(() => {
+    if (!normalizedSearchTerm) {
+      return secrets;
+    }
+
+    return secrets.filter((secret) => {
+      const searchableText = [
+        secret.title,
+        secret.type === "file" ? "file" : getSecretSourceLabel(secret),
+        secret.metadata?.source,
+        secret.metadata?.originalFileName,
+        secret.metadata?.contentType,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearchTerm);
+    });
+  }, [normalizedSearchTerm, secrets]);
+
+  const secretPageCount = Math.max(1, Math.ceil(filteredSecrets.length / PAGE_SIZE));
+  const pagedSecrets = filteredSecrets.slice(
     secretPage * PAGE_SIZE,
     secretPage * PAGE_SIZE + PAGE_SIZE
   );
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setSecretPage(0);
+  };
 
   return (
     <div className="sekura-page px-4 py-8 md:px-8 lg:px-20">
@@ -241,7 +269,10 @@ export default function Secrets() {
             <input
               type="text"
               placeholder="Search secrets by name, tags, or role..."
+              value={searchTerm}
+              onChange={handleSearchChange}
               className="sekura-input h-12 w-full rounded-lg px-4 pl-12 text-sm outline-none transition"
+              aria-label="Search secrets"
             />
           </div>
         </div>
@@ -253,7 +284,9 @@ export default function Secrets() {
             </h2>
 
             <p className="sekura-muted mt-1 text-sm">
-              Displaying the most recently added secrets in your workspace.
+              {normalizedSearchTerm
+                ? `Showing ${filteredSecrets.length} matching secret${filteredSecrets.length === 1 ? "" : "s"}.`
+                : "Displaying the most recently added secrets in your workspace."}
             </p>
           </div>
 
@@ -281,6 +314,12 @@ export default function Secrets() {
             {!loading && !error && secrets.length === 0 && (
               <div className="sekura-muted p-6 text-sm">
                 No secrets stored yet.
+              </div>
+            )}
+
+            {!loading && !error && secrets.length > 0 && filteredSecrets.length === 0 && (
+              <div className="sekura-muted p-6 text-sm">
+                No secrets match your search.
               </div>
             )}
 

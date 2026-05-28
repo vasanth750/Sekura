@@ -223,7 +223,7 @@ router.post("/:token/open", async (req, res) => {
     const now = new Date();
     const shareLink = await ShareLink.findOne({
       token,
-    }).select("expiresAt readCount");
+    }).select("expiresAt readCount burnAfterReading");
 
     if (!shareLink) {
       return res.status(404).json({
@@ -237,10 +237,45 @@ router.post("/:token/open", async (req, res) => {
       });
     }
 
-    shareLink.readCount += 1;
-    shareLink.openedAt = now;
+    if (shareLink.burnAfterReading && shareLink.readCount > 0) {
+      return res.status(410).json({
+        message: "This one-time secure link has already been viewed",
+      });
+    }
 
-    await shareLink.save();
+    const updateFilter = {
+      token,
+      expiresAt: {
+        $gt: now,
+      },
+    };
+
+    if (shareLink.burnAfterReading) {
+      updateFilter.readCount = 0;
+    }
+
+    const openedLink = await ShareLink.findOneAndUpdate(
+      updateFilter,
+      {
+        $inc: {
+          readCount: 1,
+        },
+        $set: {
+          openedAt: now,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!openedLink) {
+      return res.status(410).json({
+        message: shareLink.burnAfterReading
+          ? "This one-time secure link has already been viewed"
+          : "This secure link has expired",
+      });
+    }
 
     return res.status(200).json({
       message: "Secure link marked as opened",
@@ -282,6 +317,12 @@ router.get("/:token", async (req, res) => {
     if (shareLink.expiresAt <= now) {
       return res.status(410).json({
         message: "This secure link has expired",
+      });
+    }
+
+    if (shareLink.burnAfterReading && shareLink.readCount > 0) {
+      return res.status(410).json({
+        message: "This one-time secure link has already been viewed",
       });
     }
 
