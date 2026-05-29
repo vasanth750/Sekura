@@ -170,7 +170,7 @@ async function findActiveSessionByToken(sessionToken) {
 // ======================================
 router.post("/", auth, async (req, res) => {
   try {
-    const { title, encryptedPayload, expiresAt, kdf, policy } = req.body;
+    const { title, encryptedPayload, expiresAt, kdf } = req.body;
     const trimmedTitle = typeof title === "string" ? title.trim() : "";
 
     if (trimmedTitle.length < 3 || trimmedTitle.length > 120) {
@@ -213,16 +213,6 @@ router.post("/", auth, async (req, res) => {
       });
     }
 
-    const maxViewCount = Number.isInteger(policy?.maxViewCount)
-      ? policy.maxViewCount
-      : 1;
-
-    if (maxViewCount < 1 || maxViewCount > 10) {
-      return res.status(400).json({
-        message: "Policy maxViewCount must be between 1 and 10",
-      });
-    }
-
     let token = createSessionToken();
     while (await LiveSession.exists({ token })) {
       token = createSessionToken();
@@ -237,9 +227,6 @@ router.post("/", auth, async (req, res) => {
         algorithm: kdf.algorithm,
         salt: kdf.salt,
         iterations: kdf.iterations,
-      },
-      policy: {
-        maxViewCount,
       },
       expiresAt: expiration,
       status: "active",
@@ -686,13 +673,6 @@ router.get("/:token/package", async (req, res) => {
       });
     }
 
-    if (!participantLookup.participant.wrappedSessionKey) {
-      return res.status(202).json({
-        message: "Waiting for host approval",
-        status: "waiting_for_wrapped_key",
-      });
-    }
-
     return res.status(200).json({
       session: {
         id: liveSession.token,
@@ -701,9 +681,7 @@ router.get("/:token/package", async (req, res) => {
         expiresAt: liveSession.expiresAt,
         policy: liveSession.policy,
       },
-      kdf: liveSession.kdf,
       encryptedPayload: liveSession.encryptedPayload,
-      wrappedSessionKey: participantLookup.participant.wrappedSessionKey,
     });
   } catch (error) {
     console.log(error);
@@ -758,14 +736,6 @@ router.post("/:token/open", async (req, res) => {
     }
 
     const participant = liveSession.participants[participantLookup.index];
-    const maxViewCount = liveSession.policy?.maxViewCount || 1;
-
-    if (participant.viewCount >= maxViewCount) {
-      return res.status(409).json({
-        message: "Maximum views reached",
-      });
-    }
-
     participant.viewCount += 1;
     participant.joinedAt = participant.joinedAt || new Date();
     participant.lastSeenAt = new Date();
@@ -775,7 +745,6 @@ router.post("/:token/open", async (req, res) => {
       message: "Session opened",
       usage: {
         viewCount: participant.viewCount,
-        remainingViews: Math.max(0, maxViewCount - participant.viewCount),
       },
     });
   } catch (error) {

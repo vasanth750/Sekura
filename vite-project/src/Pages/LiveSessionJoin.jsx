@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Clock, Download, Eye, EyeOff, FileText, Image, Loader2, LockKeyhole, ShieldCheck } from "lucide-react";
 import api from "../api";
@@ -9,13 +9,9 @@ import { Label } from "../components/ui/label";
 import {
   base64UrlToBytes,
   decryptJsonWithSessionKey,
-  derivePbkdf2KeyBytes,
   normalizeEmail,
-  unwrapSessionKey,
 } from "../lib/liveSessionCrypto";
 import { downloadDataUrl, formatBytes, isImageType } from "../lib/attachments";
-
-const pollIntervalMs = 4000;
 
 function formatDate(value) {
   if (!value) {
@@ -37,11 +33,18 @@ export default function LiveSessionJoin() {
   const [sessionPackage, setSessionPackage] = useState(null);
   const [secret, setSecret] = useState(null);
   const [showSecret, setShowSecret] = useState(false);
-  const [waitingForHost, setWaitingForHost] = useState(false);
   const [closedMessage, setClosedMessage] = useState("");
   const [opened, setOpened] = useState(false);
 
   const normalizedEmail = useMemo(() => normalizeEmail(email), [email]);
+  const sessionKey = useMemo(() => {
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    const params = new URLSearchParams(hash);
+
+    return params.get("key") || "";
+  }, []);
 
   const requestHeaders = useMemo(() => {
     if (!participantToken) {
@@ -90,22 +93,18 @@ export default function LiveSessionJoin() {
     }
   };
 
-  const decryptPackage = async (pkg) => {
-    const wrapKeyBytes = await derivePbkdf2KeyBytes({
-      context: `${normalizedEmail}:${id}`,
-      salt: base64UrlToBytes(pkg.kdf.salt),
-      iterations: pkg.kdf.iterations,
-    });
-    const sessionKeyBytes = await unwrapSessionKey({
-      wrappedSessionKey: pkg.wrappedSessionKey,
-      wrapKeyBytes,
-    });
+  const decryptPackage = useCallback(async (pkg) => {
+    if (!sessionKey) {
+      throw new Error("Session key is missing from this link.");
+    }
+
+    const sessionKeyBytes = base64UrlToBytes(sessionKey);
 
     return decryptJsonWithSessionKey({
       sessionKeyBytes,
       encryptedPayload: pkg.encryptedPayload,
     });
-  };
+  }, [sessionKey]);
 
   useEffect(() => {
     if (!participantToken || closedMessage || opened) {
@@ -116,18 +115,15 @@ export default function LiveSessionJoin() {
 
     const loadPackage = async () => {
       try {
+        setDecrypting(true);
+
         const response = await api.get(`/api/live-sessions/${id}/package`, {
           headers: requestHeaders,
           validateStatus: (status) =>
-            [200, 202, 403, 410, 423].includes(status),
+            [200, 403, 410, 423].includes(status),
         });
 
         if (cancelled) {
-          return;
-        }
-
-        if (response.status === 202) {
-          setWaitingForHost(true);
           return;
         }
 
@@ -141,56 +137,40 @@ export default function LiveSessionJoin() {
           return;
         }
 
-        setWaitingForHost(false);
+        await api.post(
+          `/api/live-sessions/${id}/open`,
+          {},
+          {
+            headers: requestHeaders,
+          }
+        );
+
+        const decrypted = await decryptPackage(response.data);
         setSessionPackage(response.data);
+        setSecret(decrypted);
+        setShowSecret(true);
+        setOpened(true);
       } catch (requestError) {
         if (!cancelled) {
           setError(
             requestError.response?.data?.message ||
+              requestError.message ||
               "Unable to load live session package"
           );
+        }
+      } finally {
+        if (!cancelled) {
+          setDecrypting(false);
         }
       }
     };
 
     loadPackage();
-    const intervalId = window.setInterval(loadPackage, pollIntervalMs);
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
     };
-  }, [participantToken, id, requestHeaders, closedMessage, opened]);
-
-  const unlockSecret = async () => {
-    if (!sessionPackage) {
-      return;
-    }
-
-    try {
-      setDecrypting(true);
-      setError("");
-      const decrypted = await decryptPackage(sessionPackage);
-      setSecret(decrypted);
-      setShowSecret(true);
-
-      await api.post(
-        `/api/live-sessions/${id}/open`,
-        {},
-        {
-          headers: requestHeaders,
-        }
-      );
-      setOpened(true);
-    } catch (unlockError) {
-      setError(
-        unlockError.response?.data?.message ||
-          "Unable to decrypt this live session payload"
-      );
-    } finally {
-      setDecrypting(false);
-    }
-  };
+  }, [participantToken, id, requestHeaders, closedMessage, opened, decryptPackage]);
 
   return (
     <div className="sekura-page flex min-h-screen items-center justify-center px-4 py-8">
@@ -292,9 +272,9 @@ export default function LiveSessionJoin() {
           </div>
         ) : null}
 
-        {participantToken && waitingForHost && !sessionPackage && !closedMessage ? (
+        {participantToken && decrypting && !secret && !closedMessage ? (
           <div className="rounded-xl border border-blue-300/20 bg-blue-500/10 px-4 py-4 text-sm font-semibold text-blue-100">
-            Waiting for host approval and secure key preparation...
+            Verifying access and decrypting the secret...
           </div>
         ) : null}
 
@@ -306,19 +286,6 @@ export default function LiveSessionJoin() {
                 <span className="font-semibold">{formatDate(sessionPackage.session.expiresAt)}</span>
               </p>
             </div>
-            <Button type="button" onClick={unlockSecret} disabled={decrypting} className="w-full">
-              {decrypting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Decrypting
-                </>
-              ) : (
-                <>
-                  <LockKeyhole className="h-4 w-4" />
-                  Unlock Secret
-                </>
-              )}
-            </Button>
           </div>
         ) : null}
 
@@ -405,10 +372,10 @@ export default function LiveSessionJoin() {
               <div className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-slate-300">
                 <p className="inline-flex items-center gap-2 font-semibold">
                   <ShieldCheck className="h-4 w-4 text-green-300" />
-                  Policy
+                  Access
                 </p>
                 <p className="mt-2 text-xs">
-                  Max views: {sessionPackage.session.policy?.maxViewCount || 1}
+                  Unlimited views until the session expires
                 </p>
               </div>
             </div>

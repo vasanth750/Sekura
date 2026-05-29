@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
@@ -22,8 +22,6 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
-  Square,
-  Users,
   X,
 } from "lucide-react";
 import api from "../api";
@@ -35,14 +33,10 @@ import { Select } from "../components/ui/select";
 import { Switch } from "../components/ui/switch";
 import { Textarea } from "../components/ui/textarea";
 import {
-  base64UrlToBytes,
   bytesToBase64Url,
   createRandomBytes,
   createStandardEncryptedShare,
-  derivePbkdf2KeyBytes,
   encryptJsonWithSessionKey,
-  normalizeEmail,
-  wrapSessionKey,
 } from "../lib/liveSessionCrypto";
 import { fileToDataUrl, formatBytes, MAX_ATTACHMENT_BYTES } from "../lib/attachments";
 
@@ -266,7 +260,7 @@ function GeneratedLinkPreview({ generatedLink, shareMode, onCopy }) {
           </h2>
           <p className="sekura-muted text-sm">
             {isProtected
-              ? "Share the join link. Keep this tab open while participants verify."
+              ? "Share the join link. Recipients can verify by OTP before expiration."
               : "Share it through a trusted channel."}
           </p>
         </div>
@@ -312,142 +306,6 @@ function GeneratedLinkPreview({ generatedLink, shareMode, onCopy }) {
           </p>
         </div>
       </div>
-    </motion.div>
-  );
-}
-
-function ProtectedSessionPanel({
-  session,
-  participants,
-  wrappingEmails,
-  joinUrl,
-  hostError,
-  ending,
-  onEndSession,
-  onCopyJoinLink,
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-5 rounded-2xl border border-blue-300/20 bg-blue-300/[0.06] p-5"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 dark:text-blue-200">
-            Protected session active
-          </p>
-          <p className="sekura-heading mt-1 text-lg font-bold">
-            Status:{" "}
-            <span className="text-emerald-300">
-              {session.status === "active" ? "Active" : "Ended"}
-            </span>
-          </p>
-          <p className="sekura-muted mt-1 text-xs">
-            Expires at {formatDate(session.expiresAt)}
-          </p>
-        </div>
-
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onEndSession}
-          disabled={ending || session.status !== "active"}
-        >
-          {ending ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Ending
-            </>
-          ) : (
-            <>
-              <Square className="h-4 w-4" />
-              End Session
-            </>
-          )}
-        </Button>
-      </div>
-
-      {hostError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-300/30 dark:bg-red-500/10 dark:text-red-200">
-          {hostError}
-        </div>
-      ) : null}
-
-      <div>
-        <Label htmlFor="protectedJoinUrl">Join URL</Label>
-        <div className="mt-2 flex flex-col gap-3 sm:flex-row">
-          <Input
-            id="protectedJoinUrl"
-            readOnly
-            value={joinUrl}
-            className="font-mono text-xs"
-          />
-          <Button type="button" onClick={onCopyJoinLink}>
-            <Copy className="h-4 w-4" />
-            Copy
-          </Button>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10">
-          <p className="inline-flex items-center gap-2 text-sm font-bold">
-            <Users className="h-4 w-4" />
-            Participants
-          </p>
-          <span className="text-xs text-slate-500">{participants.length} verified</span>
-        </div>
-
-        <div className="divide-y divide-slate-200 dark:divide-white/10">
-          {participants.length === 0 ? (
-            <div className="px-4 py-4 text-sm text-slate-500">
-              Waiting for participants to verify OTP...
-            </div>
-          ) : (
-            participants.map((participant) => {
-              const isWrapping = wrappingEmails.includes(participant.email);
-
-              return (
-                <div
-                  key={participant.email}
-                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-semibold">{participant.email}</p>
-                    <p className="text-xs text-slate-500">
-                      Verified at {formatDate(participant.verifiedAt)}
-                    </p>
-                  </div>
-
-                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold dark:border-white/10">
-                    {isWrapping ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Preparing
-                      </>
-                    ) : participant.hasWrappedSessionKey ? (
-                      <>
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                        Ready
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                        Pending
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-
-      <p className="text-xs text-slate-500">
-        Keep this tab open until the session ends. Closing it prevents preparing access for new participants.
-      </p>
     </motion.div>
   );
 }
@@ -525,7 +383,9 @@ function ProtectedSessionsTable({
   sessions,
   loading,
   error,
+  endingSessionId,
   onRefresh,
+  onEndSession,
   onViewParticipants,
 }) {
   return (
@@ -601,14 +461,30 @@ function ProtectedSessionsTable({
                     </td>
                     <td className="px-3 py-4">
                       <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => onViewParticipants(session)}
-                        >
-                          <Eye className="h-4 w-4" />
-                          View People
-                        </Button>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => onViewParticipants(session)}
+                          >
+                            <Eye className="h-4 w-4" />
+                            View People
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => onEndSession(session.id)}
+                            disabled={session.status !== "active" || endingSessionId === session.id}
+                          >
+                            {endingSessionId === session.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <LockKeyhole className="h-4 w-4" />
+                            )}
+                            End Session
+                          </Button>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -748,13 +624,7 @@ export default function CreateSecretLinkPage() {
   const [loadingProtectedSessions, setLoadingProtectedSessions] = useState(true);
   const [protectedSessionsError, setProtectedSessionsError] = useState("");
   const [viewingParticipantsSession, setViewingParticipantsSession] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  const [wrappingEmails, setWrappingEmails] = useState([]);
-  const [hostError, setHostError] = useState("");
-  const [endingSession, setEndingSession] = useState(false);
-
-  const sessionKeyRef = useRef(null);
-  const wrappingQueueRef = useRef(new Set());
+  const [endingSessionId, setEndingSessionId] = useState("");
 
   const {
     control,
@@ -782,8 +652,12 @@ export default function CreateSecretLinkPage() {
       return "";
     }
 
-    return `${window.location.origin}/session/${protectedSession.id}`;
-  }, [protectedSession?.id]);
+    const keyHash = protectedSession.sessionKey
+      ? `#key=${protectedSession.sessionKey}`
+      : "";
+
+    return `${window.location.origin}/session/${protectedSession.id}${keyHash}`;
+  }, [protectedSession?.id, protectedSession?.sessionKey]);
 
   const hasActiveProtectedSession =
     shareMode === SHARE_MODE_PROTECTED && protectedSession?.status === "active";
@@ -930,7 +804,6 @@ export default function CreateSecretLinkPage() {
           ...(current || {}),
           ...response.data.session,
         }));
-        setParticipants(response.data.participants || []);
         setProtectedSessions((currentSessions) =>
           currentSessions.map((session) =>
             session.id === protectedSession.id
@@ -942,10 +815,9 @@ export default function CreateSecretLinkPage() {
               : session
           )
         );
-        setHostError("");
       } catch (pollError) {
         if (!cancelled) {
-          setHostError(
+          setProtectedSessionsError(
             pollError.response?.data?.message ||
               "Unable to refresh protected session status"
           );
@@ -961,60 +833,6 @@ export default function CreateSecretLinkPage() {
       window.clearInterval(intervalId);
     };
   }, [protectedSession?.id, protectedSession?.status]);
-
-  useEffect(() => {
-    if (!protectedSession?.id || protectedSession.status !== "active") {
-      return;
-    }
-
-    const wrapMissingParticipants = async () => {
-      for (const participant of participants) {
-        if (participant.status !== "verified" || participant.hasWrappedSessionKey) {
-          continue;
-        }
-
-        if (!sessionKeyRef.current || !protectedSession.kdf) {
-          continue;
-        }
-
-        const email = normalizeEmail(participant.email);
-        if (!email || wrappingQueueRef.current.has(email)) {
-          continue;
-        }
-
-        wrappingQueueRef.current.add(email);
-        setWrappingEmails((current) => [...current, email]);
-
-        try {
-          const wrapKeyBytes = await derivePbkdf2KeyBytes({
-            context: `${email}:${protectedSession.id}`,
-            salt: base64UrlToBytes(protectedSession.kdf.salt),
-            iterations: protectedSession.kdf.iterations,
-          });
-
-          const wrappedSessionKey = await wrapSessionKey({
-            sessionKeyBytes: sessionKeyRef.current,
-            wrapKeyBytes,
-          });
-
-          await api.post(
-            `/api/live-sessions/${protectedSession.id}/participants/${encodeURIComponent(email)}/wrap`,
-            { wrappedSessionKey }
-          );
-        } catch (wrapError) {
-          setHostError(
-            wrapError.response?.data?.message ||
-              `Unable to prepare secure access for ${email}`
-          );
-        } finally {
-          wrappingQueueRef.current.delete(email);
-          setWrappingEmails((current) => current.filter((item) => item !== email));
-        }
-      }
-    };
-
-    wrapMissingParticipants();
-  }, [participants, protectedSession?.id, protectedSession?.status, protectedSession?.kdf]);
 
   const handleShareModeChange = (mode) => {
     if (hasActiveProtectedSession) {
@@ -1103,14 +921,12 @@ export default function CreateSecretLinkPage() {
         salt: bytesToBase64Url(kdfSalt),
         iterations: 210000,
       },
-      policy: {
-        maxViewCount: 1,
-      },
     });
 
     const createdSession = response.data.session;
     const sessionWithKdf = {
       ...createdSession,
+      sessionKey: bytesToBase64Url(sessionKeyBytes),
       kdf: {
         algorithm: "PBKDF2-SHA-256",
         salt: bytesToBase64Url(kdfSalt),
@@ -1119,7 +935,6 @@ export default function CreateSecretLinkPage() {
     };
 
     setProtectedSession(sessionWithKdf);
-    setParticipants([]);
     setProtectedSessions((currentSessions) => [
       {
         ...createdSession,
@@ -1128,9 +943,7 @@ export default function CreateSecretLinkPage() {
       },
       ...currentSessions,
     ]);
-    sessionKeyRef.current = sessionKeyBytes;
-
-    const joinUrl = `${window.location.origin}/session/${createdSession.id}`;
+    const joinUrl = `${window.location.origin}/session/${createdSession.id}#key=${bytesToBase64Url(sessionKeyBytes)}`;
     setGeneratedLink(joinUrl);
     showToast("success", "Protected session started.");
   };
@@ -1139,7 +952,6 @@ export default function CreateSecretLinkPage() {
     void handleSubmit(async (values) => {
       try {
         setGeneratedLink("");
-        setHostError("");
         setIsEncrypting(true);
 
         if (shareMode === SHARE_MODE_PROTECTED) {
@@ -1189,23 +1001,26 @@ export default function CreateSecretLinkPage() {
     }, handleInvalid)(event);
   };
 
-  const endProtectedSession = async () => {
-    if (!protectedSession?.id) {
+  const endProtectedSession = async (sessionId = protectedSession?.id) => {
+    if (!sessionId) {
       return;
     }
 
     try {
-      setEndingSession(true);
-      setHostError("");
+      setEndingSessionId(sessionId);
 
-      await api.post(`/api/live-sessions/${protectedSession.id}/end`);
-      setProtectedSession((current) => ({
-        ...(current || {}),
-        status: "ended",
-      }));
+      await api.post(`/api/live-sessions/${sessionId}/end`);
+
+      if (protectedSession?.id === sessionId) {
+        setProtectedSession((current) => ({
+          ...(current || {}),
+          status: "ended",
+        }));
+      }
+
       setProtectedSessions((currentSessions) =>
         currentSessions.map((session) =>
-          session.id === protectedSession.id
+          session.id === sessionId
             ? {
                 ...session,
                 status: "ended",
@@ -1214,14 +1029,14 @@ export default function CreateSecretLinkPage() {
             : session
         )
       );
-      sessionKeyRef.current = null;
       showToast("success", "Protected session ended.");
     } catch (endError) {
-      setHostError(
+      showToast(
+        "error",
         endError.response?.data?.message || "Unable to end protected session"
       );
     } finally {
-      setEndingSession(false);
+      setEndingSessionId("");
     }
   };
 
@@ -1256,9 +1071,6 @@ export default function CreateSecretLinkPage() {
     reset(defaultValues);
     setGeneratedLink("");
     setProtectedSession(null);
-    setParticipants([]);
-    setHostError("");
-    sessionKeyRef.current = null;
     setSelectedSecretId("");
     setSelectedSecretTitle("");
     setFileAttachment(null);
@@ -1545,19 +1357,6 @@ export default function CreateSecretLinkPage() {
                 ) : null}
 
                 <AnimatePresence>
-                  {protectedSession ? (
-                    <ProtectedSessionPanel
-                      session={protectedSession}
-                      participants={participants}
-                      wrappingEmails={wrappingEmails}
-                      joinUrl={protectedJoinUrl}
-                      hostError={hostError}
-                      ending={endingSession}
-                      onEndSession={endProtectedSession}
-                      onCopyJoinLink={handleCopy}
-                    />
-                  ) : null}
-
                   <GeneratedLinkPreview
                     generatedLink={generatedLink}
                     shareMode={shareMode}
@@ -1595,7 +1394,9 @@ export default function CreateSecretLinkPage() {
             sessions={protectedSessions}
             loading={loadingProtectedSessions}
             error={protectedSessionsError}
+            endingSessionId={endingSessionId}
             onRefresh={fetchProtectedSessions}
+            onEndSession={endProtectedSession}
             onViewParticipants={setViewingParticipantsSession}
           />
         </motion.div>
