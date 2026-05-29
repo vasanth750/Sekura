@@ -26,7 +26,10 @@ function Login() {
 
   const isLoginFormValid = email && password && !emailError && !passwordError;
   const isResetFormValid =
-    resetPassword && resetRePassword && resetPassword.length >= 8;
+    resetPassword &&
+    resetRePassword &&
+    resetPassword.length >= 8 &&
+    resetPassword === resetRePassword;
 
   const validateEmail = (value) => {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,6 +50,20 @@ function Login() {
 
     setPasswordError(error);
     return !error && value !== "";
+  };
+
+  const validateResetPassword = () => {
+    if (resetPassword.length < 8) {
+      setResetError("Password must be at least 8 characters");
+      return false;
+    }
+
+    if (resetPassword !== resetRePassword) {
+      setResetError("Passwords do not match");
+      return false;
+    }
+
+    return true;
   };
 
   const resetForgotState = () => {
@@ -91,6 +108,7 @@ function Login() {
     try {
       await api.post("/send-otp", {
         Email: email,
+        Purpose: "reset-password",
       });
 
       setResetOtpSent(true);
@@ -123,9 +141,14 @@ function Login() {
   };
 
   const handleResetPassword = async () => {
-    setLoading(true);
     setResetError("");
     setResetMessage("");
+
+    if (!validateResetPassword()) {
+      return;
+    }
+
+    setLoading(true);
 
     try {
       await api.post("/reset-password", {

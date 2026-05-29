@@ -62,6 +62,149 @@ router.post("/", auth, async (req, res) => {
 });
 
 // ======================================
+// LIST OWNER REQUESTS
+// ======================================
+
+router.get("/", auth, async (req, res) => {
+  try {
+    const requests = await SecretRequest.find({
+      owner: req.user.id,
+    })
+      .select("token title status submittedAt expiresAt createdAt updatedAt")
+      .populate("submittedSecret", "title type metadata createdAt")
+      .sort({
+        createdAt: -1,
+      });
+
+    return res.status(200).json({
+      requests: requests.map((request) => ({
+        id: request.token,
+        title: request.title,
+        status: request.status,
+        submittedSecret: request.submittedSecret
+          ? {
+              id: request.submittedSecret._id,
+              title: request.submittedSecret.title,
+              type: request.submittedSecret.type,
+              metadata: request.submittedSecret.metadata,
+              createdAt: request.submittedSecret.createdAt,
+            }
+          : null,
+        submittedAt: request.submittedAt,
+        expiresAt: request.expiresAt,
+        createdAt: request.createdAt,
+        updatedAt: request.updatedAt,
+      })),
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Unable to fetch request links",
+    });
+  }
+});
+
+// ======================================
+// UPDATE OWNER REQUEST
+// ======================================
+
+router.put("/:token", auth, async (req, res) => {
+  try {
+    const { token } = req.params;
+    const title = typeof req.body.title === "string" ? req.body.title.trim() : "";
+
+    if (!requestTokenPattern.test(token)) {
+      return res.status(400).json({
+        message: "Invalid request link",
+      });
+    }
+
+    if (title.length < 3 || title.length > 120) {
+      return res.status(400).json({
+        message: "Request name must be between 3 and 120 characters",
+      });
+    }
+
+    const secretRequest = await SecretRequest.findOneAndUpdate(
+      {
+        owner: req.user.id,
+        token,
+      },
+      {
+        title,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("token title status submittedAt expiresAt createdAt updatedAt");
+
+    if (!secretRequest) {
+      return res.status(404).json({
+        message: "Request link not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Request updated successfully",
+      request: {
+        id: secretRequest.token,
+        title: secretRequest.title,
+        status: secretRequest.status,
+        submittedAt: secretRequest.submittedAt,
+        expiresAt: secretRequest.expiresAt,
+        createdAt: secretRequest.createdAt,
+        updatedAt: secretRequest.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Unable to update request link",
+    });
+  }
+});
+
+// ======================================
+// DELETE OWNER REQUEST
+// ======================================
+
+router.delete("/:token", auth, async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!requestTokenPattern.test(token)) {
+      return res.status(400).json({
+        message: "Invalid request link",
+      });
+    }
+
+    const secretRequest = await SecretRequest.findOneAndDelete({
+      owner: req.user.id,
+      token,
+    });
+
+    if (!secretRequest) {
+      return res.status(404).json({
+        message: "Request link not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Request deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Unable to delete request link",
+    });
+  }
+});
+
+// ======================================
 // PUBLIC REQUEST METADATA
 // ======================================
 

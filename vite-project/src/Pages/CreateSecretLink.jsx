@@ -452,6 +452,176 @@ function ProtectedSessionPanel({
   );
 }
 
+function ProtectedSessionParticipantsDialog({ session, onClose }) {
+  if (!session) {
+    return null;
+  }
+
+  const participants = session.participants || [];
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-950">
+        <div className="flex items-center justify-between gap-4 border-b border-slate-200 p-5 dark:border-white/10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-700 dark:text-green-300">
+              Protected session viewers
+            </p>
+            <h2 className="sekura-heading mt-1 text-xl font-black">{session.title}</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="sekura-secondary-btn flex h-10 w-10 items-center justify-center rounded-lg"
+            aria-label="Close viewers popup"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-5">
+          {participants.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 p-5 text-sm font-semibold text-slate-500 dark:border-white/10 dark:text-slate-300">
+              No verified viewers yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.14em] text-slate-500 dark:border-white/10 dark:text-slate-400">
+                    <th className="px-3 py-3 font-bold">Email</th>
+                    <th className="px-3 py-3 font-bold">Status</th>
+                    <th className="px-3 py-3 font-bold">Views</th>
+                    <th className="px-3 py-3 font-bold">Last Viewed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {participants.map((participant) => (
+                    <tr key={participant.email} className="border-b border-slate-200 last:border-0 dark:border-white/10">
+                      <td className="px-3 py-4 font-semibold">{participant.email}</td>
+                      <td className="px-3 py-4 capitalize text-slate-600 dark:text-slate-300">
+                        {participant.status}
+                      </td>
+                      <td className="px-3 py-4 text-slate-600 dark:text-slate-300">
+                        {participant.viewCount || 0}
+                      </td>
+                      <td className="px-3 py-4 text-slate-600 dark:text-slate-300">
+                        {formatDate(participant.lastSeenAt || participant.joinedAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProtectedSessionsTable({
+  sessions,
+  loading,
+  error,
+  onRefresh,
+  onViewParticipants,
+}) {
+  return (
+    <Card className="overflow-hidden p-0">
+      <div className="flex flex-col gap-4 border-b border-slate-200 p-5 dark:border-white/10 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-green-700 dark:text-green-300">
+            Protected sessions
+          </p>
+          <h2 className="sekura-heading mt-1 text-2xl font-black">Session Activity</h2>
+        </div>
+
+        <Button type="button" variant="secondary" onClick={onRefresh} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+      </div>
+
+      <div className="p-5">
+        {error ? (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-300/30 dark:bg-red-500/10 dark:text-red-200">
+            {error}
+          </div>
+        ) : null}
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.14em] text-slate-500 dark:border-white/10 dark:text-slate-400">
+                <th className="px-3 py-3 font-bold">Session</th>
+                <th className="px-3 py-3 font-bold">Status</th>
+                <th className="px-3 py-3 font-bold">Created</th>
+                <th className="px-3 py-3 font-bold">Expires</th>
+                <th className="px-3 py-3 font-bold">Viewers</th>
+                <th className="px-3 py-3 text-right font-bold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-3 py-10 text-center">
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-300">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading protected sessions...
+                    </span>
+                  </td>
+                </tr>
+              ) : sessions.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-3 py-10 text-center text-sm font-semibold text-slate-500 dark:text-slate-300">
+                    No protected sessions created yet.
+                  </td>
+                </tr>
+              ) : (
+                sessions.map((session) => (
+                  <tr key={session.id} className="border-b border-slate-200 last:border-0 dark:border-white/10">
+                    <td className="px-3 py-4">
+                      <p className="sekura-heading font-bold">{session.title}</p>
+                    </td>
+                    <td className="px-3 py-4">
+                      <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold capitalize text-green-700 dark:border-green-300/20 dark:bg-green-300/10 dark:text-green-200">
+                        {session.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-4 text-slate-600 dark:text-slate-300">
+                      {formatDate(session.createdAt)}
+                    </td>
+                    <td className="px-3 py-4 text-slate-600 dark:text-slate-300">
+                      {formatDate(session.expiresAt)}
+                    </td>
+                    <td className="px-3 py-4 text-slate-600 dark:text-slate-300">
+                      {(session.participants || []).length}
+                    </td>
+                    <td className="px-3 py-4">
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => onViewParticipants(session)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View People
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function RecentSecretsPanel({
   filteredSecrets,
   loadingSecrets,
@@ -574,6 +744,10 @@ export default function CreateSecretLinkPage() {
   const [burnAfterReading, setBurnAfterReading] = useState(false);
 
   const [protectedSession, setProtectedSession] = useState(null);
+  const [protectedSessions, setProtectedSessions] = useState([]);
+  const [loadingProtectedSessions, setLoadingProtectedSessions] = useState(true);
+  const [protectedSessionsError, setProtectedSessionsError] = useState("");
+  const [viewingParticipantsSession, setViewingParticipantsSession] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [wrappingEmails, setWrappingEmails] = useState([]);
   const [hostError, setHostError] = useState("");
@@ -616,6 +790,22 @@ export default function CreateSecretLinkPage() {
 
   const showToast = (type, message) => {
     setToast({ type, message });
+  };
+
+  const fetchProtectedSessions = async () => {
+    try {
+      setLoadingProtectedSessions(true);
+      setProtectedSessionsError("");
+
+      const response = await api.get("/api/live-sessions");
+      setProtectedSessions(response.data.sessions || []);
+    } catch (error) {
+      setProtectedSessionsError(
+        error.response?.data?.message || "Unable to load protected sessions."
+      );
+    } finally {
+      setLoadingProtectedSessions(false);
+    }
   };
 
   const handleFileAttachment = async (event) => {
@@ -691,6 +881,34 @@ export default function CreateSecretLinkPage() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get("/api/live-sessions")
+      .then((response) => {
+        if (isMounted) {
+          setProtectedSessions(response.data.sessions || []);
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setProtectedSessionsError(
+            error.response?.data?.message || "Unable to load protected sessions."
+          );
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoadingProtectedSessions(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!protectedSession?.id || protectedSession.status !== "active") {
       return undefined;
     }
@@ -713,6 +931,17 @@ export default function CreateSecretLinkPage() {
           ...response.data.session,
         }));
         setParticipants(response.data.participants || []);
+        setProtectedSessions((currentSessions) =>
+          currentSessions.map((session) =>
+            session.id === protectedSession.id
+              ? {
+                  ...session,
+                  ...response.data.session,
+                  participants: response.data.participants || [],
+                }
+              : session
+          )
+        );
         setHostError("");
       } catch (pollError) {
         if (!cancelled) {
@@ -891,6 +1120,14 @@ export default function CreateSecretLinkPage() {
 
     setProtectedSession(sessionWithKdf);
     setParticipants([]);
+    setProtectedSessions((currentSessions) => [
+      {
+        ...createdSession,
+        createdAt: new Date().toISOString(),
+        participants: [],
+      },
+      ...currentSessions,
+    ]);
     sessionKeyRef.current = sessionKeyBytes;
 
     const joinUrl = `${window.location.origin}/session/${createdSession.id}`;
@@ -966,6 +1203,17 @@ export default function CreateSecretLinkPage() {
         ...(current || {}),
         status: "ended",
       }));
+      setProtectedSessions((currentSessions) =>
+        currentSessions.map((session) =>
+          session.id === protectedSession.id
+            ? {
+                ...session,
+                status: "ended",
+                endedAt: new Date().toISOString(),
+              }
+            : session
+        )
+      );
       sessionKeyRef.current = null;
       showToast("success", "Protected session ended.");
     } catch (endError) {
@@ -1027,6 +1275,10 @@ export default function CreateSecretLinkPage() {
   return (
     <div className="sekura-page min-h-[calc(100vh-5rem)]">
       <Toast toast={toast} onDone={() => setToast(null)} />
+      <ProtectedSessionParticipantsDialog
+        session={viewingParticipantsSession}
+        onClose={() => setViewingParticipantsSession(null)}
+      />
 
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
         <motion.div
@@ -1333,6 +1585,20 @@ export default function CreateSecretLinkPage() {
             />
           </motion.div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.24, duration: 0.45 }}
+        >
+          <ProtectedSessionsTable
+            sessions={protectedSessions}
+            loading={loadingProtectedSessions}
+            error={protectedSessionsError}
+            onRefresh={fetchProtectedSessions}
+            onViewParticipants={setViewingParticipantsSession}
+          />
+        </motion.div>
       </div>
     </div>
   );

@@ -34,6 +34,39 @@ function Signup() {
     return true;
   };
 
+  const validateSignupForm = () => {
+    let isValid = true;
+
+    setNameError("");
+    setEmailError("");
+    setPasswordError("");
+    setRePasswordError("");
+
+    if (!name.trim() || name.trim().length < 3) {
+      setNameError("Name must contain minimum 3 characters");
+      isValid = false;
+    }
+
+    if (!validateEmail(email)) {
+      isValid = false;
+    }
+
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      isValid = false;
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(password)) {
+      setPasswordError("Password must contain uppercase, lowercase, number and special character");
+      isValid = false;
+    }
+
+    if (password !== reEnter) {
+      setRePasswordError("Passwords do not match");
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const sendOTP = async () => {
     if (!validateEmail(email)) {
       return;
@@ -44,6 +77,7 @@ function Signup() {
     try {
       await api.post("/send-otp", {
         Email: email,
+        Purpose: "signup",
       });
 
       setOtpSent(true);
@@ -81,10 +115,11 @@ function Signup() {
   };
 
   const handleSignup = async () => {
+    if (!validateSignupForm()) {
+      return;
+    }
+
     setLoading(true);
-    setNameError("");
-    setPasswordError("");
-    setRePasswordError("");
 
     try {
       const response = await api.post("/newUser", {
@@ -100,15 +135,22 @@ function Signup() {
       navigate("/dashboard", { replace: true });
     } catch (error) {
       if (error.response) {
-        const message = error.response.data.message;
+        const message = error.response.data.message || "Unable to create account";
+        const normalizedMessage = message.toLowerCase();
 
-        if (message.includes("Name")) {
+        if (normalizedMessage.includes("name")) {
           setNameError(message);
-        } else if (message.includes("match")) {
+        } else if (normalizedMessage.includes("already") || normalizedMessage.includes("email")) {
+          setEmailError(message);
+        } else if (normalizedMessage.includes("match")) {
           setRePasswordError(message);
-        } else if (message.includes("Password")) {
+        } else if (normalizedMessage.includes("password")) {
           setPasswordError(message);
+        } else {
+          setEmailError(message);
         }
+      } else {
+        setEmailError("Server Error");
       }
     } finally {
       setLoading(false);

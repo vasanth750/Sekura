@@ -264,6 +264,54 @@ router.post("/", auth, async (req, res) => {
 });
 
 // ======================================
+// LIST HOST LIVE SESSIONS
+// ======================================
+router.get("/", auth, async (req, res) => {
+  try {
+    const sessions = await LiveSession.find({
+      owner: req.user.id,
+    })
+      .select("token title status expiresAt policy participants endedAt createdAt updatedAt")
+      .sort({
+        createdAt: -1,
+      });
+
+    const now = new Date();
+
+    return res.status(200).json({
+      sessions: sessions.map((session) => {
+        const isExpired = session.expiresAt <= now || session.status === "expired";
+
+        return {
+          id: session.token,
+          title: session.title,
+          status: isExpired ? "expired" : session.status,
+          expiresAt: session.expiresAt,
+          endedAt: session.endedAt,
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+          policy: session.policy,
+          participants: session.participants.map((participant) => ({
+            email: participant.email,
+            status: participant.status,
+            verifiedAt: participant.verifiedAt,
+            joinedAt: participant.joinedAt,
+            lastSeenAt: participant.lastSeenAt,
+            viewCount: participant.viewCount || 0,
+            hasWrappedSessionKey: Boolean(participant.wrappedSessionKey),
+          })),
+        };
+      }),
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Unable to load protected sessions",
+    });
+  }
+});
+
+// ======================================
 // HOST VIEW OF SESSION STATUS
 // ======================================
 router.get("/:token/host-status", auth, async (req, res) => {

@@ -131,6 +131,12 @@ app.post("/newUser", async (req, res) => {
         } = req.body;
         const normalizedEmail = normalizeEmail(Email);
 
+        if (!normalizedEmail) {
+            return res.status(400).json({
+                message: "Valid email is required"
+            });
+        }
+
         // =========================
         // EMAIL VERIFIED?
         // =========================
@@ -152,7 +158,7 @@ app.post("/newUser", async (req, res) => {
 
         if (
             !Name ||
-            Name.length < 3
+            Name.trim().length < 3
         ) {
 
             return res.status(400).json({
@@ -184,6 +190,20 @@ app.post("/newUser", async (req, res) => {
         // =========================
 
         if (
+            typeof Password !== "string" ||
+            Password.length < 8
+        ) {
+
+            return res.status(400).json({
+
+                message:
+                    "Password must be at least 8 characters"
+
+            });
+
+        }
+
+        if (
             !passwordPattern.test(Password)
         ) {
 
@@ -206,6 +226,25 @@ app.post("/newUser", async (req, res) => {
         // =========================
         // CREATE USER
         // =========================
+
+        const existingUser = await User.findOne({
+
+            email: normalizedEmail
+
+        });
+
+        if (existingUser) {
+
+            clearEmailVerification(normalizedEmail);
+
+            return res.status(409).json({
+
+                message:
+                    "Account already exists with this email"
+
+            });
+
+        }
 
         const user = new User({
 
@@ -270,6 +309,17 @@ app.post("/newUser", async (req, res) => {
     catch (error) {
 
         console.log(error);
+
+        if (error?.code === 11000 && error?.keyPattern?.email) {
+
+            return res.status(409).json({
+
+                message:
+                    "Account already exists with this email"
+
+            });
+
+        }
 
         res.status(500).json({
 

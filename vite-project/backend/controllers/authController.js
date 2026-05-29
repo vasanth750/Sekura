@@ -68,10 +68,35 @@ export const sendOtp = async (req, res) => {
         cleanupExpiredOtps();
 
         email = normalizeEmail(req.body.email || req.body.Email);
+        const purpose = String(
+            req.body.purpose || req.body.Purpose || "signup"
+        ).trim().toLowerCase();
 
         if (!isValidEmail(email)) {
             return res.status(400).json({
                 message: "Valid email is required"
+            });
+        }
+
+        if (!["signup", "reset-password"].includes(purpose)) {
+            return res.status(400).json({
+                message: "Invalid OTP purpose"
+            });
+        }
+
+        const existingUser = await User.findOne({
+            email
+        }).select("_id");
+
+        if (purpose === "signup" && existingUser) {
+            return res.status(409).json({
+                message: "Account already exists with this email"
+            });
+        }
+
+        if (purpose === "reset-password" && !existingUser) {
+            return res.status(404).json({
+                message: "No Sekura account found with this email"
             });
         }
 
